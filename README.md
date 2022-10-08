@@ -9,7 +9,7 @@
 * EntityReference / ReferencingExt - Allows accessing "main" Entity if there's a need to reference other entity;
 * EntitiesBridge / SystemExt - Contains useful extension methods for MonoBehaviour <-> Entities communication & system utilities;
 * Extra buffers system - Allow to insert MonoBehaviour "Update"s into Entities loop without stalling jobs;
-* EntityTransform - Inserts specified Transform (UnityEngine.Transform) into TransformAccessArray for sync jobs to process;
+* EntityTransform - Inserts specified Transform (UnityEngine.Transform) into TransformAccessArray for sync jobs to process (see Transform Synchronization);
 
 ### How to:
 
@@ -96,7 +96,33 @@ This may seem inconvinient at first, but at the same time:
 
 If you need to stop "Update" use either Entities enableable components feature, or structural changes + system queries to filter out logic that should not run.
 
+Extra systems & execution order:
+In order to ensure correct execution and prevent job stalls, make sure to use [UpdateInGroup(typeof(AfterSimulationGroup))] for the managed component systems.
+Alternatively BeforeSimulationGroup can be used. 
+
+Changes done to the entities via EntityBehaviour are applied via BeginFrameEntityCommandBufferSystem.
+Changes in AfterSimulationGroup should either use AfterSimulationEntityCommandBufferSystem or NextFrameEntityCommandBufferSystem
+
+## Extended simulation groups:
+- BeginFrameGroup (Changes to Entities from MonoBehaviours are applied here);
+- BeforeSimulationGroup (Should be a main thread group that runs managed component data processing before actual full jobified simulation starts);
+- SimulationGroup (Default simulation group, jobified logic should be placed here);
+- AfterSimulationGroup (Processed changes from SimulationGroup can be applied to MonoBehaviours here);
+
+## Transform Synchronization
+Required data from UnityEngine.Transform can be read / written to by adding appropriate components to the Entity, either via IEntitySupplier implementation, or by other means. Modifiers of where to sync is applied by components as well.
+
+Make sure to add EntityTransform to your EntityBehaviour setup, rest is handled automatically.
+
+List of data:
+- (Local)Position / (Local)Rotation / LocalScale -> Stores according data
+- Sync(Local)PositionToTransform / Sync(Local)RotationToTransform / SyncLocalScaleToTransform -> Will sync according data from Position / Rotation / Scale to the Transform;
+- SyncPositionToEntity / SyncRotationToEntity -> Syncs Transform.position / Transform.rotation to Position / Rotation
+- SyncUpToTransform -> Syncs UpDirection to transform.up
+
+Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformation.Systems.
+
 ## Compatibility:
 This repo is compatible with Entities 1.0-exp.8;
 
-Can be used with 0.51 and lower if EntityBehaviour type constraints are modified from "unmanaged" to "struct", and API calls to fetch systems are changed from "GetExistingSystemManaged" to "GetExistingSystem".
+Can be used with 0.51 and lower if EntityBehaviour type constraints are modified from "unmanaged" to "struct", and API calls to fetch systems are changed from "GetExistingSystemManaged" to "GetExistingSystem" as well as "GetOrCreateSystemManaged" -> "GetOrCreateSystem".
