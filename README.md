@@ -93,4 +93,7 @@ This may seem inconvinient at first, but at the same time:
 
 If you need to stop "Update" use either Entities enableable components feature, or structural changes + system queries to filter out logic that should not run.
 
+## Compatibility:
+This repo is compatible with Entities 1.0-exp.8;
 
+Can be used with 0.51 and lower if EntityBehaviour type constraints are modified from "unmanaged" to "struct", and API calls to fetch systems are changed from "GetExistingSystemManaged" to "GetExistingSystem".
