@@ -144,16 +144,15 @@ namespace EntitiesExt {
       }
       
       /// <summary>
-      /// Cleanups multiple EntityContainer components on the passed gameObject and creates a new one if its missing
+      /// Cleanups multiple EntityBehaviour components on the passed gameObject and creates a new one if its missing
       /// </summary>
       public static void SetupEntityBehaviour(this GameObject gameObject, ref EntityBehaviour entityBehaviour) {
          if (entityBehaviour == null) entityBehaviour = gameObject.SetupEntityBehaviour();
       }
 
       /// <summary>
-      /// Cleanups multiple EntityContainer components on the passed gameObject and creates a new one if its missing
+      /// Cleanups multiple EntityBehaviour components on the passed gameObject and creates a new one if its missing
       /// </summary>
-      /// <param name="gameObject"></param>
       private static EntityBehaviour SetupEntityBehaviour(this GameObject gameObject) {
          Buffer.Clear();
          gameObject.GetComponents(Buffer);
@@ -181,9 +180,9 @@ namespace EntitiesExt {
       }
 
       /// <summary>
-      /// Finds an EntityContainer in the hierarchy if EntityContainer is null
+      /// Finds an EntityBehaviour in the hierarchy if EntityBehaviour is null
       /// </summary>
-      public static void FindEntityContainer(this MonoBehaviour behaviour, ref EntityBehaviour entityBehaviour) {
+      public static void FindEntityBehaviour(this MonoBehaviour behaviour, ref EntityBehaviour entityBehaviour) {
          if (entityBehaviour != null) return;
          
          if (!behaviour.TryGetComponent(out entityBehaviour)) {
