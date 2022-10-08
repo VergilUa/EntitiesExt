@@ -63,6 +63,9 @@ Alternatively, you can attach EntityBehaviour to the gameObject manually via Ins
 6. Use systems as usual to access / process data. If you need access to the Entity and its data from MonoBehaviours - use according EntityBehaviour methods. 
 EntityBehaviour can also be used to queue up via EntityCommandBuffer structural changes, such as adding / seting / removing components. (See Lifecycle)
 
+Attached component types are displayed via EntityBehaviour inspector. 
+Click on them to open a context menu which can be used to figure out where types are originated from.
+
 
 ### How it works:
 In editor:
