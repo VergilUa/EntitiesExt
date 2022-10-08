@@ -120,7 +120,7 @@ List of data:
 - SyncPositionToEntity / SyncRotationToEntity -> Syncs Transform.position / Transform.rotation to Position / Rotation
 - SyncUpToTransform -> Syncs UpDirection to transform.up
 
-Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformation.Systems.
+Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformations/Systems & HybridTransformations/Data.
 
 ## Compatibility:
 This repo is compatible with Entities 1.0-exp.8;
