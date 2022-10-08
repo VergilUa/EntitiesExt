@@ -4,6 +4,6 @@ namespace EntitiesExt.SystemGroups {
    /// <summary>
    /// Group used for physical simulation / phys engine
    /// </summary>
-   [UpdateInGroup(typeof(BeforeSimulationGroup))]
+   [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
    public class PhysSimGroup : ComponentSystemGroup { }
 }
