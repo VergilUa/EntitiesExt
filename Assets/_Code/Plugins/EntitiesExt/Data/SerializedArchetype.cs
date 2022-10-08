@@ -1,7 +1,7 @@
 using System;
 using Unity.Entities;
 
-namespace EntitiesExt.Data {
+namespace EntitiesExt {
    /// <summary>
    /// Determines entity archetype that can be saved in MonoBehaviour via single field
    /// </summary>

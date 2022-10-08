@@ -4,7 +4,7 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using EntitiesExt.Data;
+using EntitiesExt;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -19,16 +19,20 @@ namespace EntitiesExt {
       /// </summary>
       public static void CreateEntity(this ComponentType[] archetype,
                                       out Entity entity,
-                                      out EntityManager entityManager) {
-         entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+                                      out EntityManager entityManager,
+                                      byte worldIndex = 0) {
+         World world = TryGetWorldAt(worldIndex);
+         
+         entityManager = world.EntityManager;
          entity = entityManager.CreateEntity(archetype);
       }
 
       /// <summary>
       /// Obtains a GameObject from the entity
       /// </summary>
-      public static GameObject GetGameObject(this Entity entity) {
-         World world = World.DefaultGameObjectInjectionWorld;
+      public static GameObject GetGameObject(this Entity entity, byte worldIndex = 0) {
+         World world = TryGetWorldAt(worldIndex);
+         
          EntityManager em = world.EntityManager;
 
          return em.GetComponentObject<GameObject>(entity);
@@ -100,8 +104,28 @@ namespace EntitiesExt {
       /// Pretty much a shortcut
       /// </remarks>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static T FetchSystem<T>() where T : SystemBase {
-         return World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<T>();
+      public static T FetchSystem<T>(byte worldIndex = 0) where T : SystemBase {
+         World world = TryGetWorldAt(worldIndex);
+         
+         return world.GetOrCreateSystemManaged<T>();
+      }
+
+      /// <summary>
+      /// Tries to obtain requested World from World.All by index
+      /// </summary>
+      /// <returns>
+      /// Requested world if index is valid, null otherwise.
+      /// </returns>
+      public static World TryGetWorldAt(int index) {
+         var worlds = World.All;
+#if DEBUG
+         if (index >= worlds.Count) {
+            Debug.LogError($"{nameof(TryGetWorldAt)}:: Invalid world index passed. Currently available {worlds.Count}");
+            return null;
+         }
+#endif
+
+         return worlds[index];
       }
 
 #if UNITY_EDITOR

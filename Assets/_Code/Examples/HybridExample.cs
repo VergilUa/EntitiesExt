@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using EntitiesExt;
-using EntitiesExt.Contracts;
 using Unity.Entities;
 using UnityEngine;
 

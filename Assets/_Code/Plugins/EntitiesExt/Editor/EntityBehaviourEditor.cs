@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using EditorExt;
-using EntitiesExt.Contracts;
+using EntitiesExt;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine;

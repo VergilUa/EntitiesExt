@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Jobs;
 
-namespace EntitiesExt.Data {
+namespace EntitiesExt {
    /// <summary>
    /// Single instance transform container array for all transform references
    /// </summary>
@@ -14,6 +14,8 @@ namespace EntitiesExt.Data {
 
       public TransformAccessArray RefArray => _refArray;
       public NativeArray<Entity> AlignedEntities => _refEntities.ToArray(Allocator.TempJob);
+
+      public bool IsCreated => _isCreated;
 
       #endregion
 
@@ -25,6 +27,7 @@ namespace EntitiesExt.Data {
       private const int InitialCapacity = 128;
 
       private NativeParallelHashSet<int> _freeIds;
+      private bool _isCreated;
 
       #endregion
 
@@ -38,6 +41,7 @@ namespace EntitiesExt.Data {
 
          // Utility system, do not run it
          Enabled = false;
+         _isCreated = true;
       }
 
       protected override void OnUpdate() {  }
@@ -47,7 +51,7 @@ namespace EntitiesExt.Data {
       /// and assigns an id for the referencing
       /// </summary>
       public int AddTransform(Entity entity, Transform trm) {
-         int refId = -1;
+         int refId;
 
          // If there's a free id -> use it
          if (!_freeIds.IsEmpty) {
@@ -85,6 +89,8 @@ namespace EntitiesExt.Data {
          if (_refArray.isCreated) _refArray.Dispose();
          if (_refEntities.IsCreated) _refEntities.Dispose();
          if (_freeIds.IsCreated) _freeIds.Dispose();
+
+         _isCreated = false;
       }
    }
 }

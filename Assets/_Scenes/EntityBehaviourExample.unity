@@ -205,6 +205,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9af33ee20de874469be180ff5a6f63f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _insertToWorld: 0
   _componentHashes: 861724263c6d18cbddf37a13313a70ee76aca5f9bef3466551f2dc99653f8d4e
   _uniqueComponentsHash: 12953771654339884403
   _suppliers:
@@ -533,8 +534,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9af33ee20de874469be180ff5a6f63f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _componentHashes: 4426fa467b63036c863cc6d52996d4b9186a674abe2483ac32e3cb3a57e71e2bd3cdcb613903bde0
-  _uniqueComponentsHash: 11987667984485896126
+  _insertToWorld: 0
+  _componentHashes: 4426fa467b63036c863cc6d52996d4b932e3cb3a57e71e2bd3cdcb613903bde0
+  _uniqueComponentsHash: 6186591894264973636
   _suppliers:
   - {fileID: 2146984659}
   - {fileID: 2146984658}

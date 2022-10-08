@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 
-namespace EntitiesExt.Contracts {
+namespace EntitiesExt {
    public interface IEntitySupplier {
 #if UNITY_EDITOR
       /// <summary>

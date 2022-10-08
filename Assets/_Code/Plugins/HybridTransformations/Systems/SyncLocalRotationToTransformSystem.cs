@@ -1,4 +1,4 @@
-﻿using EntitiesExt.Data;
+﻿using EntitiesExt;
 using EntitiesExt.SystemGroups;
 using Unity.Burst;
 using Unity.Collections;

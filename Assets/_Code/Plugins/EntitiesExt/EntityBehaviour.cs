@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using EntitiesExt.Contracts;
+using EntitiesExt;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -16,6 +16,9 @@ namespace EntitiesExt {
    /// </summary>
    [DisallowMultipleComponent]
    public sealed class EntityBehaviour : MonoBehaviour {
+      [SerializeField]
+      private byte _insertToWorld = 0;
+      
       [SerializeField, HideInInspector]
       private ulong[] _componentHashes = Array.Empty<ulong>();
 
@@ -28,6 +31,8 @@ namespace EntitiesExt {
       #region [Properties]
 
       public Entity Entity { get; private set; }
+
+      public byte WorldIndex => _insertToWorld;
 
       public EntityManager EntityManager => _entityManager;
 
@@ -46,8 +51,13 @@ namespace EntitiesExt {
       private bool _isInitialized;
 
       #endregion
-      
-      private void OnEnable() => Initialize();
+
+      private void OnEnable() {
+#if UNITY_EDITOR
+         if (gameObject.scene.isSubScene) return;
+#endif
+         Initialize();
+      }
 
       private void OnDisable() => CleanupEntity();
 
@@ -71,11 +81,27 @@ namespace EntitiesExt {
          
          // Before everything -> Ensure no double initialization occurs when iterating IEntitySuppliers
          _isInitialized = true;
+
+         _world = EntitiesBridge.TryGetWorldAt(_insertToWorld);
+#if UNITY_EDITOR
+         if (_world == null) {
+            Debug.LogError($"{nameof(EntityBehaviour)}:: Unable to get World at index {_insertToWorld} ");
+            return;
+         }
+#endif
          
-         _world = World.DefaultGameObjectInjectionWorld;
          _entityManager = _world.EntityManager;
          _ecbSystem = _world.GetExistingSystemManaged<BeginFrameEntityCommandBufferSystem>();
-
+         
+#if UNITY_EDITOR
+         if (_ecbSystem == null) {
+            Debug.LogError($"{nameof(EntityBehaviour)}:: Unable to get {nameof(BeginFrameEntityCommandBufferSystem)} "
+                           + $"from World at index {_insertToWorld} ({World.All[_insertToWorld].Name}). "
+                           + $"Make sure it is created by the bootstrap");
+            return;
+         }
+#endif
+         
          EntityArchetype archetype = ArchetypeLookup.GetCreateArchetype(_uniqueComponentsHash,
                                                                         _componentHashes,
                                                                         _entityManager);

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using EntitiesExt.Contracts;
-using EntitiesExt.Data;
+using EntitiesExt;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -28,6 +27,7 @@ namespace EntitiesExt {
       #region [Fields]
 
       private int _transformId = -1;
+      private TransformContainerSystem _container;
 
       #endregion
 
@@ -41,9 +41,10 @@ namespace EntitiesExt {
          }
 #endif
          Profiler.BeginSample("EntityTransform::AddTransform (Main Thread)");
-         
-         var containerSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<TransformContainerSystem>();
-         _transformId = containerSystem.AddTransform(entity, _targetTransform);
+
+         var world = EntitiesBridge.TryGetWorldAt(_entityBehaviour.WorldIndex);
+         _container = world.GetOrCreateSystemManaged<TransformContainerSystem>();
+         _transformId = _container.AddTransform(entity, _targetTransform);
          
          _entityBehaviour.Add(this);
          
@@ -55,12 +56,8 @@ namespace EntitiesExt {
       private void CleanupTransforms() {
          Profiler.BeginSample("EntityTransform::CleanupTransforms (Main Thread)");
 
-         if (_transformId != -1) {
-            // Not every entity container needs transform -> don't cache
-            World world = World.DefaultGameObjectInjectionWorld;
-            if (world != null && world.IsCreated)
-               world.GetExistingSystemManaged<TransformContainerSystem>().ReleaseTransform(_transformId);
-            
+         if (_transformId != -1 && _container != null && _container.IsCreated) {
+            _container.ReleaseTransform(_transformId);
             _transformId = -1;
          }
 
