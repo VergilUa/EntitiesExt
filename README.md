@@ -124,7 +124,8 @@ Other transform manipulation logic can be added by writing appropriate systems, 
 
 ## Compatibility:
 This repo is compatible with Entities 1.0-exp.8;
-Currently does not support Entity Graphics or Unity.Physics packages alike out-of-the-box. 
+
+Currently does not support authoring Entity Graphics or Unity.Physics packages alike out-of-the-box. 
 Manually authoring components and adding according data would work though. 
 
 Can be used with 0.51 and lower if EntityBehaviour type constraints are modified from "unmanaged" to "struct", and API calls to fetch systems are changed from "GetExistingSystemManaged" to "GetExistingSystem" as well as "GetOrCreateSystemManaged" -> "GetOrCreateSystem".
