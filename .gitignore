@@ -42,29 +42,12 @@ Thumbs.db
 # ============ #
 # Heavy assets #
 # ============ #
-Assets/Allsky
-Assets/Allsky/*
-Assets/Allsky.meta
 *.png~
 /Logs
 ~*.tmp
 ~*.docx
 ~$*.docx
 
-Assets/Bakery/*
-Assets/Editor/x64/Bakery/*
-Assets/Scenes/E01M01/E01M01_Core/OcclusionCullingData.asset.meta
-Assets/Scenes/E01M01/E01M01_Core/OcclusionCullingData.asset
-Assets/Editor/x64/Bakery/.uvgblog.txt
-Assets/Editor/x64/Bakery/.ftracelog.txt
-Assets/Editor/x64/Bakery/.denoiserlog.txt
-Assets/Editor/x64/Bakery/.denoisedirlog.txt
-bakery_times.log
-Assets/_Code/Third Party/MT Assets/Easy Mesh Combiner/Documentation/
-Assets/Bakery/_tempScene/
-Assets/Bakery/_tempScene.unity.meta
-Assets/Bakery/_tempScene.unity
-Assets/_Code/Third Party/MT Assets/Easy Mesh Combiner/Documentation.meta
 Assets/Editor/x64/Bakery.meta
 Assets/Editor/x64.meta
 debug.log
@@ -72,5 +55,4 @@ debug.log
 /UserSettings/Search.index
 /UserSettings/Search.settings
 /ProjectSettings/SceneTemplateSettings.json
-/UserSettings/Layouts/default-2021.dwlt
-/UserSettings/Layouts/CurrentMaximizeLayout.dwlt
+/UserSettings*
