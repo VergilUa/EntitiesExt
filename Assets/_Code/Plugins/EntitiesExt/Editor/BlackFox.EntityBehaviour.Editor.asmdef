@@ -1,0 +1,17 @@
+{
+    "name": "BlackFox.EntityBehaviour.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a559c5ac9587e1e41a612cb3ba0b3bd9",
+        "GUID:734d92eba21c94caba915361bd5ac177"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
