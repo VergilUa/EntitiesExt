@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using EditorExt;
-using EntitiesExt;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
@@ -10,17 +9,29 @@ using Object = UnityEngine.Object;
 
 namespace EntitiesExt {
    [CustomEditor(typeof(EntityBehaviour))]
-   public sealed class EntityBehaviourEditor : InspectorBase
-   {
+   public sealed class EntityBehaviourEditor : InspectorBase {
       #region [Properties]
 
       private EntityBehaviour Target => target as EntityBehaviour;
+      
+      private string WorldNamesKey {
+         get
+         {
+            string uniqueProjectName = Application.productName;
+            return EditorPrefsWorldNames + uniqueProjectName;
+         }
+      }
+      private const string EditorPrefsWorldNames = "EditorPrefs_WorldNames_";
+
+      private bool HasCachedWorldNames => _worldNamesArr != null && _worldNamesArr.Length > 0;
 
       #endregion
 
       #region [Fields]
 
+      private SerializedProperty _insertToWorld;
       private SerializedProperty _componentHashes;
+      
       private readonly List<ComponentDisplayData> _addedComponents = new List<ComponentDisplayData>(4);
       private static readonly HashSet<Type> TypeBuffer = new HashSet<Type>(16);
       private static readonly List<MonoBehaviour> UsageBuffer = new List<MonoBehaviour>();
@@ -28,19 +39,91 @@ namespace EntitiesExt {
       private const string OpenScript = "Open Script";
       private const string PathSeparator = "/";
       private const string SelectObject = "Select GameObject";
+      private const string LaunchToCache = "Enter playmode and select EntityBehaviour to cache World names. \n"
+                                           + "Names are stored in EditorPrefs and are unique to each productName \\ project.";
+      
+      private string[] _worldNamesArr = Array.Empty<string>();
+      private WorldNames _worldNames;
 
       #endregion
 
       protected override void OnEnable() {
          base.OnEnable();
+
+         SetupWorldNames();
          
+         _insertToWorld = FindProp(nameof(_insertToWorld));
          _componentHashes = FindProp(nameof(_componentHashes));
       }
 
       public override void OnInspectorGUI() {
          base.OnInspectorGUI();
 
+         serializedObject.Update();
+
+         DrawHelpBox();
+         DrawWorldInsertProp();
          DrawAddedComponents();
+         
+         serializedObject.ApplyModifiedProperties();
+      }
+
+      /// <summary>
+      /// Cache existing world names when inspector is selected in playmode.
+      /// </summary>
+      private void SetupWorldNames() {
+         if (!Application.isPlaying) {
+            LoadExistingWorldNames();
+            return;
+         }
+
+         LoadExistingWorldNames();
+
+         List<string> names = _worldNames.Names ?? new List<string>();
+         names.Clear();
+
+         var allWorlds = World.All;
+
+         foreach (World world in allWorlds) {
+            names.Add(world.Name);
+         }
+
+         _worldNames.Names = names;
+         
+         string json = JsonUtility.ToJson(_worldNames);
+         EditorPrefs.SetString(WorldNamesKey, json);
+      }
+
+      private void LoadExistingWorldNames() {
+         string worldNamesJSON = EditorPrefs.GetString(WorldNamesKey, string.Empty);
+         if (string.IsNullOrEmpty(worldNamesJSON)) return;
+         
+         _worldNames = JsonUtility.FromJson<WorldNames>(worldNamesJSON);
+         _worldNamesArr = _worldNames.Names.ToArray();
+      }
+
+      private void DrawHelpBox() {
+         if (_worldNamesArr != null && _worldNamesArr.Length != 0) return;
+         
+         // Notify how World name caching works
+         HelpBox(LaunchToCache);
+      }
+
+      private void DrawWorldInsertProp() {
+         using var disabled = Disabled(Application.isPlaying);
+         using var horizontal = Horizontal;
+
+         ChangeCheck();
+
+         PropField(_insertToWorld);
+         if (!HasCachedWorldNames) return;
+         
+         int value = _insertToWorld.intValue;
+
+         int index = (byte) EditorGUILayout.Popup(value, _worldNamesArr);
+
+         if (EndCheck)
+            _insertToWorld.intValue = index;
       }
 
       private void DrawAddedComponents() {
@@ -98,9 +181,8 @@ namespace EntitiesExt {
 
             sup.GatherEntityTypes(TypeBuffer);
 
-            if (TypeBuffer.Contains(data.Type)) {
+            if (TypeBuffer.Contains(data.Type)) 
                UsageBuffer.Add(monoSup);
-            }
          }
 
          GenericMenu menu = new GenericMenu();
@@ -151,5 +233,10 @@ namespace EntitiesExt {
    public struct ComponentDisplayData {
       public string Name;
       public Type Type;
+   }
+
+   [Serializable]
+   public struct WorldNames {
+      public List<string> Names;
    }
 }

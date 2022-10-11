@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using EntitiesExt;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -16,7 +15,7 @@ namespace EntitiesExt {
    /// </summary>
    [DisallowMultipleComponent]
    public sealed class EntityBehaviour : MonoBehaviour {
-      [SerializeField]
+      [SerializeField, HideInInspector]
       private byte _insertToWorld = 0;
       
       [SerializeField, HideInInspector]
@@ -97,7 +96,7 @@ namespace EntitiesExt {
          if (_ecbSystem == null) {
             Debug.LogError($"{nameof(EntityBehaviour)}:: Unable to get {nameof(BeginFrameEntityCommandBufferSystem)} "
                            + $"from World at index {_insertToWorld} ({World.All[_insertToWorld].Name}). "
-                           + $"Make sure it is created by the bootstrap");
+                           + "Make sure it is created by the bootstrap");
             return;
          }
 #endif

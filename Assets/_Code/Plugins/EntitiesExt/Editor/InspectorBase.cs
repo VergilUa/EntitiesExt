@@ -37,6 +37,8 @@ namespace EditorExt {
 
       protected static GUIStyle _boxDnd;
       protected static GUIStyle _boldFoldoutStyle;
+      
+      public static bool EndCheck => EditorGUI.EndChangeCheck();
 
       #endregion
 
