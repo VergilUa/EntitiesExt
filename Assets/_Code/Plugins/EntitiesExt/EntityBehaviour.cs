@@ -72,7 +72,7 @@ namespace EntitiesExt {
          }
 #endif
          
-         Profiler.BeginSample("EntityContainer:: Initialize");
+         Profiler.BeginSample("EntityBehaviour:: Initialize");
          if (_isInitialized) {
             Profiler.EndSample();
             return;
@@ -107,7 +107,7 @@ namespace EntitiesExt {
          Entity entity = _entityManager.CreateEntity(archetype);
          Entity = entity;
          
-         Profiler.BeginSample("EntityContainer:: SetupEntity");
+         Profiler.BeginSample("EntityBehaviour:: SetupEntity");
          
          EntityCommandBuffer ecb = Buffer;
          
@@ -462,7 +462,7 @@ namespace EntitiesExt {
       private void AssertEntityNotNull() {
          if (Entity == default) {
             Debug.LogError("Entity == default. "
-                           + $"Ensure EntityContainer.Initialize has been called before accessing ({gameObject})",
+                           + $"Ensure EntityBehaviour.Initialize has been called before accessing ({gameObject})",
                            this);
          }
       }
@@ -501,7 +501,7 @@ namespace EntitiesExt {
       }
 
       private void ProcessSuppliersRecursive(Transform parent) {
-         // Walk through children of transform, find ones that do not have EntityContainer,
+         // Walk through children of transform, find ones that do not have EntityBehaviour,
          // and them as suppliers as well
          foreach (Transform trm in parent) {
             GameObject childGO = trm.gameObject;

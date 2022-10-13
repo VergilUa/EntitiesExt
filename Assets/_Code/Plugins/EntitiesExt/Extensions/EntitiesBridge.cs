@@ -4,7 +4,6 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using EntitiesExt;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
