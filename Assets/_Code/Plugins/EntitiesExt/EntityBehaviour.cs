@@ -29,6 +29,12 @@ namespace EntitiesExt {
       
       #region [Properties]
 
+      public SerializedArchetype Archetype => new SerializedArchetype
+                                              {
+                                                 ComponentHashes = _componentHashes,
+                                                 ArchetypeUniqueHash = _uniqueComponentsHash
+                                              };
+
       public Entity Entity { get; private set; }
 
       public byte WorldIndex => _insertToWorld;
@@ -456,6 +462,19 @@ namespace EntitiesExt {
          _entityManager.AddComponentObject(Entity, obj);
          _entityManager.AddComponentObject(Entity, obj2);
          _entityManager.AddComponentObject(Entity, obj3);
+      }
+
+      /// <summary>
+      /// Runs a <see cref="IEntitySupplier.SetupEntity"/> over all suppliers added to this EntityBehaviour and writes
+      /// data resolved by those into EntityCommandBuffer to the specified entity
+      /// </summary>
+      public void WriteDataTo(Entity entity, EntityCommandBuffer ecb) {
+         foreach (MonoBehaviour behaviour in _suppliers) {
+            IEntitySupplier supplier = behaviour as IEntitySupplier;
+            
+            // ReSharper disable once PossibleNullReferenceException -> Pre-filtered in editor
+            supplier.SetupEntity(entity, ecb);
+         }
       }
 
       [Conditional("DEBUG")]
