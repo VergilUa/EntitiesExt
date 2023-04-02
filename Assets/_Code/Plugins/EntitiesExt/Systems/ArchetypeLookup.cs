@@ -27,7 +27,10 @@ namespace EntitiesExt {
          
          if (_lookup.IsCreated) _lookup.Dispose();
       }
-      
+
+      public EntityArchetype GetCreateArchetype(SerializedArchetype archetype) =>
+         GetCreateArchetype(archetype.ArchetypeUniqueHash, archetype.ComponentHashes);
+
       public EntityArchetype GetCreateArchetype(ulong uniqueHash, ulong[] typeHashes) {
          if (_lookup.TryGetValue(uniqueHash, out EntityArchetype arch)) 
             return arch;
