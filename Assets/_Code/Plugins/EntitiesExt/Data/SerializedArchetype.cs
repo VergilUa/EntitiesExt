@@ -10,7 +10,7 @@ namespace EntitiesExt {
       public ulong ArchetypeUniqueHash;
       public ulong[] ComponentHashes;
 
-      public EntityArchetype AsArchetype(EntityManager em) =>
-         ArchetypeLookup.GetCreateArchetype(ArchetypeUniqueHash, ComponentHashes, em);
+      public EntityArchetype AsArchetype(ArchetypeLookup lookup) =>
+         lookup.GetCreateArchetype(ArchetypeUniqueHash, ComponentHashes);
    }
 }

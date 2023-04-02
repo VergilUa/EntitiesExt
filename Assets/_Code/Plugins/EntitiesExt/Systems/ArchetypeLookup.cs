@@ -1,22 +1,34 @@
 using EntitiesExt.SystemGroups;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 
 namespace EntitiesExt {
    [UpdateInGroup(typeof(BeginFrameGroup))]
    public partial class ArchetypeLookup : SystemBase {
-      private static NativeParallelHashMap<ulong, EntityArchetype> _lookup;
+      #region [Fields]
+
+      private NativeParallelHashMap<ulong, EntityArchetype> _lookup;      
+
+      #endregion
       
-      [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-      private static void Initialize() {
+      protected override void OnCreate() {
+         base.OnCreate();
+
          _lookup = new NativeParallelHashMap<ulong, EntityArchetype>(1024, Allocator.Persistent);
-         TypeManager.Initialize();
+         
+         // Don't run, only cleanup
+         Enabled = false;
       }
 
-      public static EntityArchetype GetCreateArchetype(ulong uniqueHash,
-                                                       ulong[] typeHashes,
-                                                       EntityManager entityManager) {
+      protected override void OnUpdate() {  }
+      
+      protected override void OnDestroy() {
+         base.OnDestroy();
+         
+         if (_lookup.IsCreated) _lookup.Dispose();
+      }
+      
+      public EntityArchetype GetCreateArchetype(ulong uniqueHash, ulong[] typeHashes) {
          if (_lookup.TryGetValue(uniqueHash, out EntityArchetype arch)) 
             return arch;
 
@@ -30,25 +42,11 @@ namespace EntitiesExt {
             types[i] = ComponentType.FromTypeIndex(typeIndex);
          }
 
-         arch = entityManager.CreateArchetype(types);
+         EntityManager em = EntityManager;
+         arch = em.CreateArchetype(types);
 
          _lookup[uniqueHash] = arch;
          return arch;
-      }
-
-      protected override void OnCreate() {
-         base.OnCreate();
-
-         // Don't run, only cleanup
-         Enabled = false;
-      }
-
-      protected override void OnUpdate() {  }
-      
-      protected override void OnDestroy() {
-         base.OnDestroy();
-         
-         if (_lookup.IsCreated) _lookup.Dispose();
       }
    }
 }

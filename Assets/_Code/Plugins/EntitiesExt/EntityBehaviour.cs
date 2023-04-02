@@ -106,10 +106,10 @@ namespace EntitiesExt {
             return;
          }
 #endif
+
+         ArchetypeLookup lookupSystem = _world.GetOrCreateSystemManaged<ArchetypeLookup>();
+         EntityArchetype archetype = lookupSystem.GetCreateArchetype(_uniqueComponentsHash, _componentHashes);
          
-         EntityArchetype archetype = ArchetypeLookup.GetCreateArchetype(_uniqueComponentsHash,
-                                                                        _componentHashes,
-                                                                        _entityManager);
          Entity entity = _entityManager.CreateEntity(archetype);
          Entity = entity;
          

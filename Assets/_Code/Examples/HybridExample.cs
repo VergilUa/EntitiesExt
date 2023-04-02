@@ -25,7 +25,7 @@ namespace Examples {
          ecb.SetComponent(entity,
                           new ForceTest
                           {
-                             Value = _force,
+                             Value = _force
                           });
 
          var buffer = ecb.SetBuffer<RotationTest>(entity);
