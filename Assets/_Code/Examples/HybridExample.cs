@@ -11,7 +11,11 @@ namespace Examples {
 
       [SerializeField]
       private float _rotation = 69.420f;
+
+      [SerializeField]
+      private bool _useRng = true;
       
+      [Space]
       [SerializeField]
       private Rigidbody _rgb;
 
@@ -25,7 +29,8 @@ namespace Examples {
          ecb.SetComponent(entity,
                           new ForceTest
                           {
-                             Value = _force
+                             Value = _force,
+                             UseRng = _useRng
                           });
 
          var buffer = ecb.SetBuffer<RotationTest>(entity);
@@ -52,6 +57,7 @@ namespace Examples {
    [Serializable]
    public struct ForceTest : IComponentData {
       public float Value;
+      public bool UseRng;
    }
 
    [Serializable]

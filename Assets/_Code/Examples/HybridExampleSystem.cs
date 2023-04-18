@@ -8,10 +8,14 @@ namespace Examples {
                            in ForceTest forceTestData,
                            in DynamicBuffer<RotationTest> rotationTestBuffer) => {
                     float rnd = Random.value;
-                    Vector3 dir = rnd <= 0.5f ? Vector3.up : Vector3.down;
-                    
+                    Vector3 dir = Vector3.up;
+
+                    if (forceTestData.UseRng) {
+                       dir = rnd <= 0.5f ? Vector3.up : Vector3.down;
+                       rgb.useGravity = false;
+                    }
+
                     rgb.AddForce(forceTestData.Value * dir);
-                    rgb.useGravity = false;
 
                     for (int i = 0; i < rotationTestBuffer.Length; i++) {
                        var rotationTestData = rotationTestBuffer[i];
