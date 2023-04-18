@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace EntitiesExt.SystemGroups {
+namespace EntitiesExt {
    /// <summary>
    /// Group used for physical simulation / phys engine
    /// </summary>

@@ -1,4 +1,4 @@
-using EntitiesExt.SystemGroups;
+using EntitiesExt;
 using Unity.Entities;
 
 namespace HybridTransformations {

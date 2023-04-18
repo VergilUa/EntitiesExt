@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 
-namespace EntitiesExt.Extensions {
+namespace EntitiesExt {
    public static class SystemExt {
       public static T AddTo<T>(this T disposable, List<IDisposable> subs) where T : IDisposable {
          subs.Add(disposable);

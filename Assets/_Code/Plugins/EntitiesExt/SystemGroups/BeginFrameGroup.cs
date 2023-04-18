@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace EntitiesExt.SystemGroups {
+namespace EntitiesExt {
    /// <summary>
    /// Group that is executed first in <see cref="BeforeSimulationGroup"/>.
    /// </summary>

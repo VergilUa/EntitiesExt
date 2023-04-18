@@ -1,5 +1,4 @@
-﻿using EntitiesExt.SystemGroups;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Jobs;

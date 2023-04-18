@@ -1,9 +1,9 @@
 ﻿using Unity.Entities;
 
-namespace EntitiesExt.SystemGroups {
+namespace EntitiesExt {
    /// <summary>
    /// Update group that runs in the simulation group, but before any pure ECS system / jobs are scheduled.
-   /// Use this one for the hybrid / Monobehaviour bridged systems
+   /// Use this one for the hybrid / MonoBehaviour bridged systems
    /// </summary>
    [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
    public class BeforeSimulationGroup : ComponentSystemGroup { }

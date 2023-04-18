@@ -1,4 +1,3 @@
-using EntitiesExt.SystemGroups;
 using Unity.Entities;
 
 namespace EntitiesExt {

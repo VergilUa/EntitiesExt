@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace EntitiesExt.SystemGroups {
+namespace EntitiesExt {
    /// <summary>
    /// Performs structural changes at the beginning of the (next) frame before any work is performed.
    /// </summary>

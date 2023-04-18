@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace EntitiesExt.SystemGroups {
+namespace EntitiesExt {
    /// <summary>
    /// Update group that runs in the simulation group, but after all ECS system / jobs ran / scheduled.
    /// This is done in PreLateUpdate

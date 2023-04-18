@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using EntitiesExt;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -65,7 +64,9 @@ namespace EntitiesExt {
       }
 
 #if UNITY_EDITOR
-      public void GatherEntityTypes(HashSet<Type> types) { }
+      public void GatherEntityTypes(HashSet<Type> types) {
+         types.Add<EntityTransform>();
+      }
 
       public void SetTransform_Editor(Transform trm) {
          _targetTransform = trm;
