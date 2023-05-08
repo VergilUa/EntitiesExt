@@ -27,6 +27,9 @@ namespace EntitiesExt {
       [SerializeField, HideInInspector]
       private List<MonoBehaviour> _suppliers = new List<MonoBehaviour>();
       
+      [SerializeField, HideInInspector]
+      private List<MonoBehaviour> _managedSuppliers = new List<MonoBehaviour>();
+      
       #region [Properties]
 
       public SerializedArchetype Archetype => new SerializedArchetype
@@ -95,7 +98,8 @@ namespace EntitiesExt {
          }
 #endif
          
-         _entityManager = _world.EntityManager;
+         EntityManager em = _world.EntityManager;
+         _entityManager = em;
          _ecbSystem = _world.GetExistingSystemManaged<BeginFrameEntityCommandBufferSystem>();
          
 #if UNITY_EDITOR
@@ -109,20 +113,13 @@ namespace EntitiesExt {
 
          ArchetypeLookup lookupSystem = _world.GetOrCreateSystemManaged<ArchetypeLookup>();
          EntityArchetype archetype = lookupSystem.GetCreateArchetype(_uniqueComponentsHash, _componentHashes);
-         
-         Entity entity = _entityManager.CreateEntity(archetype);
+         Entity entity = em.CreateEntity(archetype);
          Entity = entity;
          
          Profiler.BeginSample("EntityBehaviour:: SetupEntity");
          
          EntityCommandBuffer ecb = Buffer;
-         
-         foreach (MonoBehaviour behaviour in _suppliers) {
-            IEntitySupplier supplier = behaviour as IEntitySupplier;
-            
-            // ReSharper disable once PossibleNullReferenceException -> Inputs filtered
-            supplier.SetupEntity(entity, ecb);
-         }
+         SetupEntity(entity, em, ecb);
          
          Profiler.EndSample();
 
@@ -130,6 +127,23 @@ namespace EntitiesExt {
          SetName(name);
 #endif
          Profiler.EndSample();
+      }
+      
+      private void SetupEntity(Entity entity, EntityManager em, EntityCommandBuffer ecb) {
+         foreach (MonoBehaviour behaviour in _managedSuppliers) {
+            // ReSharper disable once SuspiciousTypeConversion.Global -> Ignore, Unity returns only valid ones
+            IEntityManagedSupplier managedSupplier = behaviour as IEntityManagedSupplier;
+            
+            // ReSharper disable once PossibleNullReferenceException -> Inputs filtered
+            managedSupplier.SetupEntity(entity, em, ecb);
+         }
+         
+         foreach (MonoBehaviour behaviour in _suppliers) {
+            IEntitySupplier supplier = behaviour as IEntitySupplier;
+            
+            // ReSharper disable once PossibleNullReferenceException -> Inputs filtered
+            supplier.SetupEntity(entity, ecb);
+         }
       }
 
       private void CleanupEntity() {
@@ -169,6 +183,20 @@ namespace EntitiesExt {
 #endif
             throw;
          }
+      }
+      
+      /// <summary>
+      /// Performs HasComponent then Get if component is present.
+      /// Returns default otherwise.
+      /// </summary>
+      public bool TryGet<T>(out T result) where T : unmanaged, IComponentData {
+         if (HasComponent<T>()) {
+            result = Get<T>();
+            return true;
+         }
+
+         result = default;
+         return false;
       }
 
       /// <summary>
@@ -221,62 +249,23 @@ namespace EntitiesExt {
       /// Adds components to the contained entity
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void Add<T, T1>() where T : unmanaged, IComponentData where T1 : unmanaged, IComponentData {
+      public void Add<T, T1>() where T : unmanaged, IComponentData 
+                               where T1 : unmanaged, IComponentData {
          AssertEntityNotNull();
          
-         Buffer.AddComponent<T>(Entity);
-         Buffer.AddComponent<T1>(Entity);
+         Buffer.AddComponent<T, T1>(Entity);
       }
       
       /// <summary>
       /// Adds components to the contained entity
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void Add<T, T1, T2>() where T : unmanaged, 
-                                   IComponentData where T1 : unmanaged, 
-                                   IComponentData where T2 : unmanaged, 
-                                   IComponentData {
+      public void Add<T, T1, T2>() where T : unmanaged, IComponentData 
+                                   where T1 : unmanaged, IComponentData 
+                                   where T2 : unmanaged, IComponentData{
          AssertEntityNotNull();
          
-         Buffer.AddComponent<T>(Entity);
-         Buffer.AddComponent<T1>(Entity);
-         Buffer.AddComponent<T2>(Entity);
-      }
-      
-      /// <summary>
-      /// Adds components to the contained entity
-      /// </summary>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void Add<T, T1, T2, T3>()
-         where T : unmanaged, IComponentData
-         where T1 : unmanaged, IComponentData
-         where T2 : unmanaged, IComponentData
-         where T3 : unmanaged, IComponentData {
-         AssertEntityNotNull();
-         
-         Buffer.AddComponent<T>(Entity);
-         Buffer.AddComponent<T1>(Entity);
-         Buffer.AddComponent<T2>(Entity);
-         Buffer.AddComponent<T3>(Entity);
-      }
-      
-      /// <summary>
-      /// Adds components to the contained entity
-      /// </summary>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void Add<T, T1, T2, T3, T4>()
-         where T : unmanaged, IComponentData
-         where T1 : unmanaged, IComponentData
-         where T2 : unmanaged, IComponentData
-         where T3 : unmanaged, IComponentData
-         where T4 : unmanaged, IComponentData{
-         AssertEntityNotNull();
-         
-         Buffer.AddComponent<T>(Entity);
-         Buffer.AddComponent<T1>(Entity);
-         Buffer.AddComponent<T2>(Entity);
-         Buffer.AddComponent<T3>(Entity);
-         Buffer.AddComponent<T4>(Entity);
+         Buffer.AddComponent<T, T1, T2>(Entity);
       }
 
       /// <summary>
@@ -285,6 +274,7 @@ namespace EntitiesExt {
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public void AddBuffer<T>() where T : unmanaged, IBufferElementData {
          AssertEntityNotNull();
+         
          Buffer.AddBuffer<T>(Entity);
       }
       
@@ -292,11 +282,23 @@ namespace EntitiesExt {
       /// Adds a dynamic buffer to the Entity
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void AddBuffer<T, T1>() where T : unmanaged, IBufferElementData where T1 : unmanaged, IBufferElementData {
+      public void AddBuffer<T, T1>() where T : unmanaged, IBufferElementData 
+                                     where T1 : unmanaged, IBufferElementData {
          AssertEntityNotNull();
-         
-         Buffer.AddBuffer<T>(Entity);
-         Buffer.AddBuffer<T1>(Entity);
+
+         Buffer.AddBuffer<T, T1>(Entity);
+      }
+      
+      /// <summary>
+      /// Adds a dynamic buffer to the Entity
+      /// </summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public void AddBuffer<T, T1, T2>() where T : unmanaged, IBufferElementData 
+                                         where T1 : unmanaged, IBufferElementData
+                                         where T2 : unmanaged, IBufferElementData {
+         AssertEntityNotNull();
+
+         Buffer.AddBuffer<T, T1, T2>(Entity);
       }
 
       /// <summary>
@@ -324,9 +326,8 @@ namespace EntitiesExt {
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public DynamicBuffer<T> AddSetBuffer<T>() where T : unmanaged, IBufferElementData {
          AssertEntityNotNull();
-         
-         Buffer.AddBuffer<T>(Entity);
-         return Buffer.SetBuffer<T>(Entity);
+
+         return Buffer.AddSetBuffer<T>(Entity);
       }
 
       /// <summary>
@@ -380,8 +381,7 @@ namespace EntitiesExt {
       public void Remove<T, T1>() {
          AssertEntityNotNull();
          
-         Buffer.RemoveComponent<T>(Entity);
-         Buffer.RemoveComponent<T1>(Entity);
+         Buffer.RemoveComponent<T, T1>(Entity);
       }
 
       /// <summary>
@@ -391,9 +391,7 @@ namespace EntitiesExt {
       public void Remove<T, T1, T2>() {
          AssertEntityNotNull();
          
-         Buffer.RemoveComponent<T>(Entity);
-         Buffer.RemoveComponent<T1>(Entity);
-         Buffer.RemoveComponent<T2>(Entity);
+         Buffer.RemoveComponent<T, T1, T2>(Entity);
       }
 
       /// <summary>
@@ -403,18 +401,18 @@ namespace EntitiesExt {
       public void Clear<T>() where T : unmanaged, IBufferElementData {
          AssertEntityNotNull();
          
-         Buffer.SetBuffer<T>(Entity);
+         Buffer.Clear<T>(Entity);
       }
 
       /// <summary>
       /// Clears DynamicBuffer T
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public void Clear<T, T1>() where T : unmanaged, IBufferElementData where T1 : unmanaged, IBufferElementData {
+      public void Clear<T, T1>() where T : unmanaged, IBufferElementData 
+                                 where T1 : unmanaged, IBufferElementData {
          AssertEntityNotNull();
 
-         Buffer.SetBuffer<T>(Entity);
-         Buffer.SetBuffer<T1>(Entity);
+         Buffer.Clear<T, T1>(Entity);
       }
       
       /// <summary>
@@ -426,9 +424,7 @@ namespace EntitiesExt {
                                      where T2 : unmanaged, IBufferElementData  {
          AssertEntityNotNull();
          
-         Buffer.SetBuffer<T>(Entity);
-         Buffer.SetBuffer<T1>(Entity);
-         Buffer.SetBuffer<T2>(Entity);
+         Buffer.Clear<T, T1, T2>(Entity);
       }
 
       /// <summary>
@@ -438,30 +434,46 @@ namespace EntitiesExt {
       public bool HasComponent<T>() { return _isInitialized && _entityManager.HasComponent<T>(Entity); }
 
       /// <summary>
-      /// Attaches a managed object to the entity via AddComponentObject
+      /// Attaches a managed object to the entity via EntityManager.AddComponentObject
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public void Add<T>(T obj) where T : Object {
-         _entityManager.AddComponentObject(Entity, obj);
+         AssertEntityNotNull();
+         
+         _entityManager.Add(Entity, obj);
       }
-      
+
       /// <summary>
       /// Attaches managed objects to the entity via AddComponentObject
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public void Add<T, T1>(T obj, T1 obj2) where T : Object where T1 : Object {
-         _entityManager.AddComponentObject(Entity, obj);
-         _entityManager.AddComponentObject(Entity, obj2);
+         AssertEntityNotNull();
+         
+         _entityManager.Add(Entity, obj, obj2);
       }
-      
+
       /// <summary>
       /// Attaches managed objects to the entity via AddComponentObject
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public void Add<T, T1, T2>(T obj, T1 obj2, T2 obj3) where T : Object where T1 : Object where T2 : Object {
-         _entityManager.AddComponentObject(Entity, obj);
-         _entityManager.AddComponentObject(Entity, obj2);
-         _entityManager.AddComponentObject(Entity, obj3);
+         AssertEntityNotNull();
+         
+         _entityManager.Add(Entity, obj, obj2, obj3);
+      }
+      
+      /// <summary>
+      /// Sets tag (adds or removes component of T) based on the passed state
+      /// </summary>
+      public void SetTag<T>(bool state) where T : unmanaged, IComponentData {
+         AssertEntityNotNull();
+
+         if (state) {
+            Buffer.AddComponent<T>(Entity);
+         } else {
+            Buffer.RemoveComponent<T>(Entity);
+         }
       }
 
       /// <summary>
@@ -476,6 +488,15 @@ namespace EntitiesExt {
             supplier.SetupEntity(entity, ecb);
          }
       }
+      
+      /// <summary>
+      /// Performs SetupEntity once again if the EntityBehaviour is initialized.
+      /// Useful for cases where initial data has changed and needed to be pushed again
+      /// </summary>
+      public void ReInitializeSafe() {
+         if (!_isInitialized) return;
+         SetupEntity(Entity, _entityManager, Buffer);
+      }
 
       [Conditional("DEBUG")]
       private void AssertEntityNotNull() {
@@ -488,12 +509,19 @@ namespace EntitiesExt {
 
 #if UNITY_EDITOR
       public ulong[] CompHashesEditorOnly => _componentHashes;
-      public List<MonoBehaviour> SuppliersEditorOnly => _suppliers;
+      
+      public List<MonoBehaviour> Suppliers_EditorOnly => _suppliers;
+      
+      public List<MonoBehaviour> ManagedSuppliers_EditorOnly => _managedSuppliers;
       
       private static readonly HashSet<Type> TypeBuffer = new HashSet<Type>();
 
       public void SetName(string str) { _entityManager.SetName(Entity, str); }
 
+      /// <summary>
+      /// Destroys & re-creates entity completely.
+      /// If you want to reset initial values - use ReInitializeSafe instead
+      /// </summary>
       public void RebuildEntity_Editor() {
          // Simplest hack to notify all objects OnDisable + perform cleanup and re-initialization
          // Otherwise would require having extra callbacks
@@ -504,23 +532,41 @@ namespace EntitiesExt {
       private void OnValidate() {
          TypeBuffer.Clear();
          _suppliers.Clear();
+         _managedSuppliers.Clear();
          
          TypeManager.Initialize();
          
          // Always insert suppliers that are attached to this GameObject
+         InsertRootSuppliers();
+         InsertRootManagedSuppliers();
+         
+         ProcessSuppliersRecursive(transform);
+         ProcessManagedSuppliersRecursive(transform);
+         
+         TypeBuffer.GenerateComponentHashes(out _uniqueComponentsHash, out _componentHashes);
+      }
+
+      private void InsertRootSuppliers() {
          IEntitySupplier[] suppliers = GetComponents<IEntitySupplier>();
          foreach (IEntitySupplier supplier in suppliers) {
             supplier.GatherEntityTypes(TypeBuffer);
             
             _suppliers.Add(supplier as MonoBehaviour);
          }
-         
-         ProcessSuppliersRecursive(transform);
-         TypeBuffer.GenerateComponentHashes(out _uniqueComponentsHash, out _componentHashes);
+      }
+
+      private void InsertRootManagedSuppliers() {
+         IEntityManagedSupplier[] suppliers = GetComponents<IEntityManagedSupplier>();
+         foreach (IEntityManagedSupplier supplier in suppliers) {
+            supplier.GatherEntityTypes(TypeBuffer);
+            
+            // ReSharper disable once SuspiciousTypeConversion.Global -> Ignore, Unity returns only valid ones
+            _managedSuppliers.Add(supplier as MonoBehaviour);
+         }
       }
 
       private void ProcessSuppliersRecursive(Transform parent) {
-         // Walk through children of transform, find ones that do not have EntityBehaviour,
+         // Walk through children of transform, find ones that do not have EntityContainer,
          // and them as suppliers as well
          foreach (Transform trm in parent) {
             GameObject childGO = trm.gameObject;
@@ -531,6 +577,25 @@ namespace EntitiesExt {
                supplier.GatherEntityTypes(TypeBuffer);
             
                _suppliers.Add(supplier as MonoBehaviour);
+            }
+            
+            ProcessSuppliersRecursive(trm);
+         }
+      }
+      
+      private void ProcessManagedSuppliersRecursive(Transform parent) {
+         // Walk through children of transform, find ones that do not have EntityContainer,
+         // and them as suppliers as well
+         foreach (Transform trm in parent) {
+            GameObject childGO = trm.gameObject;
+            if (childGO.TryGetComponent(out EntityBehaviour _)) continue;
+
+            IEntityManagedSupplier[] suppliers = trm.GetComponents<IEntityManagedSupplier>();
+            foreach (IEntityManagedSupplier supplier in suppliers) {
+               supplier.GatherEntityTypes(TypeBuffer);
+               
+               // ReSharper disable once SuspiciousTypeConversion.Global -> Ignore, Unity returns only valid ones
+               _managedSuppliers.Add(supplier as MonoBehaviour);
             }
             
             ProcessSuppliersRecursive(trm);

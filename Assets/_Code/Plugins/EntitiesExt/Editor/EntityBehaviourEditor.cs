@@ -170,20 +170,10 @@ namespace EntitiesExt {
       }
 
       private void ShowUsagesFor(ComponentDisplayData data) {
-         List<MonoBehaviour> suppliers = Target.SuppliersEditorOnly;
          UsageBuffer.Clear();
-
-         foreach (MonoBehaviour monoSup in suppliers) {
-            TypeBuffer.Clear();
-
-            IEntitySupplier sup = monoSup as IEntitySupplier;
-            Debug.Assert(sup != null);
-
-            sup.GatherEntityTypes(TypeBuffer);
-
-            if (TypeBuffer.Contains(data.Type)) 
-               UsageBuffer.Add(monoSup);
-         }
+         
+         InsertToUsageBuffer(Target.Suppliers_EditorOnly, data);
+         InsertToUsageBuffer(Target.ManagedSuppliers_EditorOnly, data);
 
          GenericMenu menu = new GenericMenu();
          menu.AddDisabledItem(Content("Used by:"), false);
@@ -218,6 +208,21 @@ namespace EntitiesExt {
          }
 
          menu.ShowAsContext();
+      }
+      
+      private void InsertToUsageBuffer(List<MonoBehaviour> suppliers, ComponentDisplayData data) {
+         foreach (MonoBehaviour monoSup in suppliers) {
+            TypeBuffer.Clear();
+
+            IEntitySupplier sup = monoSup as IEntitySupplier;
+            Debug.Assert(sup != null);
+
+            sup.GatherEntityTypes(TypeBuffer);
+
+            if (TypeBuffer.Contains(data.Type)) {
+               UsageBuffer.Add(monoSup);
+            }
+         }
       }
 
       private void FindScriptAndOpen(MonoBehaviour behaviour) {

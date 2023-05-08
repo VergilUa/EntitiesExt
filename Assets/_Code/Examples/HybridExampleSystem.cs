@@ -2,6 +2,9 @@ using Unity.Entities;
 using UnityEngine;
 
 namespace Examples {
+   /// <summary>
+   /// Simple managed system to run basic examples
+   /// </summary>
    public partial class HybridExampleSystem : SystemBase {
       protected override void OnUpdate() {
          Entities.ForEach((in Rigidbody rgb,

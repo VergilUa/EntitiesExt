@@ -156,27 +156,11 @@ namespace EntitiesExt {
       }
 
       /// <summary>
-      /// Utility for inserting multiple types in a single call
-      /// </summary>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static void Add<T, T1, T2, T3>(this HashSet<Type> buffer) {
-         buffer.Add(typeof(T));
-         buffer.Add(typeof(T1));
-         buffer.Add(typeof(T2));
-         buffer.Add(typeof(T3));
-      }
-      
-      /// <summary>
-      /// Cleanups multiple EntityBehaviour components on the passed gameObject and creates a new one if its missing
+      /// Cleanups multiple EntityContainer components on the passed gameObject and creates a new one if its missing
       /// </summary>
       public static void SetupEntityBehaviour(this GameObject gameObject, ref EntityBehaviour entityBehaviour) {
-         if (entityBehaviour == null) entityBehaviour = gameObject.SetupEntityBehaviour();
-      }
+         if (entityBehaviour != null) return;
 
-      /// <summary>
-      /// Cleanups multiple EntityBehaviour components on the passed gameObject and creates a new one if its missing
-      /// </summary>
-      private static EntityBehaviour SetupEntityBehaviour(this GameObject gameObject) {
          Buffer.Clear();
          gameObject.GetComponents(Buffer);
 
@@ -185,13 +169,15 @@ namespace EntitiesExt {
                EntityBehaviour comp = Buffer[i];
 
                PrefabAssetType type = PrefabUtility.GetPrefabAssetType(comp);
-               if (type != PrefabAssetType.NotAPrefab) continue;
 
-               EditorApplication.delayCall += () => {
-                  Object.DestroyImmediate(comp);
-                  MarkDirtyIfPrefab(gameObject);
-               };
-               Buffer.RemoveAt(i);
+               if (type == PrefabAssetType.NotAPrefab) {
+                  EditorApplication.delayCall += () => {
+                     Object.DestroyImmediate(comp);
+                     MarkDirtyIfPrefab(gameObject);
+                  };
+
+                  Buffer.RemoveAt(i);
+               }
 
                if (Buffer.Count <= 1) {
                   break;
@@ -199,18 +185,26 @@ namespace EntitiesExt {
             }
          }
 
-         return Buffer.Count <= 0 ? gameObject.AddComponent<EntityBehaviour>() : Buffer[0];
+         // bug Undo will generate SendMessage warnings, as well as gameObject.AddComponent
+         // but since C# does not support modification of nested lambda's via ref keyword there isn't much to be
+         // done (in a safe way), unless Unity finally removes SendMessage in 2023
+         entityBehaviour = Buffer.Count <= 0 ? Undo.AddComponent<EntityBehaviour>(gameObject) : Buffer[0];
       }
-
+      
       /// <summary>
       /// Finds an EntityBehaviour in the hierarchy if EntityBehaviour is null
       /// </summary>
       public static void FindEntityBehaviour(this MonoBehaviour behaviour, ref EntityBehaviour entityBehaviour) {
          if (entityBehaviour != null) return;
+
+         // Try root first
+         if (behaviour.TryGetComponent(out entityBehaviour)) return;
          
-         if (!behaviour.TryGetComponent(out entityBehaviour)) {
-            entityBehaviour = behaviour.GetComponentInParent<EntityBehaviour>();
-         }
+         // Otherwise try fetching from the parent object
+         EntityBehaviour result = behaviour.GetComponentInParent<EntityBehaviour>();
+
+         if (result != null)
+            entityBehaviour = result;
       }
 
       private static void MarkDirtyIfPrefab(GameObject go) {
