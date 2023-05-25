@@ -497,6 +497,32 @@ namespace EntitiesExt {
          if (!_isInitialized) return;
          SetupEntity(Entity, _entityManager, Buffer);
       }
+      
+      /// <summary>
+      /// Performs SetupEntity once again if the EntityBehaviour is initialized.
+      /// Useful for cases where initial data has changed and needed to be pushed again
+      /// </summary>
+      /// <remarks>
+      /// Updates only specific IEntitySupplier instead of the whole behaviour
+      /// </remarks>
+      public void ReInitializeSafe(IEntitySupplier supplier) {
+         if (!_isInitialized) return;
+         
+         supplier.SetupEntity(Entity, Buffer);
+      }
+      
+      /// <summary>
+      /// Performs SetupEntity once again if the EntityBehaviour is initialized.
+      /// Useful for cases where initial data has changed and needed to be pushed again
+      /// </summary>
+      /// <remarks>
+      /// Updates only specific IEntityManagedSupplier instead of the whole behaviour
+      /// </remarks>
+      public void ReInitializeSafe(IEntityManagedSupplier supplier) {
+         if (!_isInitialized) return;
+         
+         supplier.SetupEntity(Entity, EntityManager, Buffer);
+      }
 
       [Conditional("DEBUG")]
       private void AssertEntityNotNull() {
@@ -506,6 +532,7 @@ namespace EntitiesExt {
                            this);
          }
       }
+      
 
 #if UNITY_EDITOR
       public ulong[] CompHashesEditorOnly => _componentHashes;
