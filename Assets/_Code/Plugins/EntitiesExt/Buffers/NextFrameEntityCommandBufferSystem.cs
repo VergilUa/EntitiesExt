@@ -10,5 +10,5 @@ namespace EntitiesExt {
    /// </remarks>
    [UpdateInGroup(typeof(BeginFrameGroup))]
    [UpdateBefore(typeof(BeginFrameEntityCommandBufferSystem))]
-   public class NextFrameEntityCommandBufferSystem : EntityCommandBufferSystem { }
+   public partial class NextFrameEntityCommandBufferSystem : EntityCommandBufferSystem { }
 }

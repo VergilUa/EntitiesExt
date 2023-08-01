@@ -5,5 +5,5 @@ namespace EntitiesExt {
    /// Performs structural changes after simulation is done including MonoBehaviours
    /// </summary>
    [UpdateInGroup(typeof(AfterSimulationGroup), OrderLast = true)]
-   public class AfterSimulationEntityCommandBufferSystem : EntityCommandBufferSystem { }
+   public partial class AfterSimulationEntityCommandBufferSystem : EntityCommandBufferSystem { }
 }

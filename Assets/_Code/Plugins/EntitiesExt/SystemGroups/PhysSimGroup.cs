@@ -5,5 +5,5 @@ namespace EntitiesExt {
    /// Group used for physical simulation / phys engine
    /// </summary>
    [UpdateInGroup(typeof(BeforeSimulationGroup))]
-   public class PhysSimGroup : ComponentSystemGroup { }
+   public partial class PhysSimGroup : ComponentSystemGroup { }
 }

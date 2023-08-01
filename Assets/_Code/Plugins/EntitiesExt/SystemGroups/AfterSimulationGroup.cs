@@ -8,5 +8,5 @@ namespace EntitiesExt {
    /// </summary>
    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
    [UpdateAfter(typeof(EndSimulationEntityCommandBufferSystem))]
-   public class AfterSimulationGroup : ComponentSystemGroup { }
+   public partial class AfterSimulationGroup : ComponentSystemGroup { }
 }

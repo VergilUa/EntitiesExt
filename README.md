@@ -123,7 +123,7 @@ List of data:
 Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformations/Systems & HybridTransformations/Data.
 
 ## Compatibility:
-This repo is compatible with Entities 1.0-exp.8;
+This repo is compatible with Unity 2022.3 LTS + Entities 1.0.11;
 
 Currently does not support authoring Entity Graphics or Unity.Physics packages alike out-of-the-box. 
 Manually authoring components and adding according data would work though. 

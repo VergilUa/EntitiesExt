@@ -25,7 +25,7 @@ namespace HybridTransformations {
 
       protected override void OnUpdate() {
          var ecb = _ecbSystem.CreateCommandBuffer();
-         ecb.RemoveComponentForEntityQuery<DontSyncOneFrame>(_dontSyncOneFrame);
+         ecb.RemoveComponent<DontSyncOneFrame>(_dontSyncOneFrame, EntityQueryCaptureMode.AtPlayback);
       }
    }
 }

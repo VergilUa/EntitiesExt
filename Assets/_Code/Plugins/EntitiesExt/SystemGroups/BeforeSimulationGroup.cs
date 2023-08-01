@@ -6,5 +6,5 @@ namespace EntitiesExt {
    /// Use this one for the hybrid / MonoBehaviour bridged systems
    /// </summary>
    [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-   public class BeforeSimulationGroup : ComponentSystemGroup { }
+   public partial class BeforeSimulationGroup : ComponentSystemGroup { }
 }
