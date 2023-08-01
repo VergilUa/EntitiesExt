@@ -38,6 +38,23 @@ namespace EntitiesExt {
       }
 
       /// <summary>
+      /// Identical to component lookup TryGetComponent, but for EntityManager (works with managed objects).
+      /// Attempts to fetch existing component object attached to the entity.
+      /// </summary>
+      /// <returns>
+      /// True if component object is present. False otherwise.
+      /// </returns>
+      public static bool TryGetComponentObject<T>(this ref EntityManager em, Entity entity, out T obj) where T : class {
+         if (em.HasComponent<T>(entity)) {
+            obj = em.GetComponentObject<T>(entity);
+            return true;
+         }
+
+         obj = null;
+         return false;
+      }
+      
+      /// <summary>
       /// Packs IBufferElementData to the list
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -134,7 +151,10 @@ namespace EntitiesExt {
       /// Utility for inserting multiple types in a single call
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static void Add<T>(this HashSet<Type> buffer) { buffer.Add(typeof(T)); }
+      public static void Add<T>(this HashSet<Type> buffer) => buffer.Add(typeof(T));
+
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static void Remove<T>(this HashSet<Type> buffer) => buffer.Remove(typeof(T));
 
       /// <summary>
       /// Utility for inserting multiple types in a single call

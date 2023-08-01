@@ -4,7 +4,8 @@ using Unity.Collections;
 
 namespace EntitiesExt {
    public static class SystemExt {
-      public static T AddTo<T>(this T disposable, List<IDisposable> subs) where T : IDisposable {
+      public static T AddTo<T>(this T disposable, List<IDisposable> subs)
+         where T : IDisposable {
          subs.Add(disposable);
          return disposable;
       }
@@ -21,14 +22,16 @@ namespace EntitiesExt {
       /// <summary>
       /// Safely disposes collection by checking if it has been created
       /// </summary>
-      public static void SafeDispose<T>(this NativeArray<T> collection) where T : struct {
+      public static void SafeDispose<T>(this NativeArray<T> collection)
+         where T : struct {
          if (collection.IsCreated) collection.Dispose();
       }
-      
+
       /// <summary>
       /// Safely disposes collection by checking if it has been created
       /// </summary>
-      public static void SafeDispose<T>(this NativeList<T> collection) where T : unmanaged {
+      public static void SafeDispose<T>(this NativeList<T> collection)
+         where T : unmanaged {
          if (collection.IsCreated) collection.Dispose();
       }
 
@@ -37,6 +40,20 @@ namespace EntitiesExt {
       /// </summary>
       public static void SafeDispose<TKey>(this NativeParallelHashSet<TKey> collection)
          where TKey : unmanaged, IEquatable<TKey> {
+         if (collection.IsCreated) collection.Dispose();
+      }
+
+      /// <summary>
+      /// Safely disposes collection by checking if it has been created
+      /// </summary>
+      public static void SafeDispose<TKey, TValue>(this NativeParallelHashMap<TKey, TValue> collection)
+         where TKey : unmanaged, IEquatable<TKey>
+         where TValue : unmanaged {
+         if (collection.IsCreated) collection.Dispose();
+      }
+      
+      public static void SafeDispose<T>(this NativeQueue<T> collection)
+         where T : unmanaged {
          if (collection.IsCreated) collection.Dispose();
       }
    }

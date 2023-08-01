@@ -213,6 +213,16 @@ namespace EntitiesExt {
             
          Buffer.AddComponent(Entity, data);
       }
+      
+      /// <summary>
+      /// Sets component data to the entity (without using Buffer)  
+      /// </summary>
+      /// <remarks>Should only be used in Main thread only groups / context</remarks>
+      public void AddSetDirect<T>(T data) where T : unmanaged, IComponentData {
+         AssertEntityNotNull();
+         
+         _entityManager.AddComponentData(Entity, data);
+      }
 
       /// <summary>
       /// Sets component data to the entity  
