@@ -184,6 +184,15 @@ namespace EntitiesExt {
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static void Add<T>(this HashSet<Type> buffer) => buffer.Add(typeof(T));
 
+      /// <summary>
+      /// Checks if collection has type in it
+      /// </summary>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static bool Contains<T>(this HashSet<Type> buffer) => buffer.Contains(typeof(T));
+      
+      /// <summary>
+      /// Removes type from the collection
+      /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static void Remove<T>(this HashSet<Type> buffer) => buffer.Remove(typeof(T));
 
