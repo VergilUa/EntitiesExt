@@ -41,6 +41,9 @@ namespace EntitiesExt {
       public Entity Entity { get; private set; }
 
       public byte WorldIndex => _insertToWorld;
+      
+      public World World => _world;
+      private World _world;
 
       public EntityManager EntityManager => _entityManager;
 
@@ -52,7 +55,6 @@ namespace EntitiesExt {
       
       #region [Fields]
 
-      private World _world;
       private EntityManager _entityManager;
       private BeginFrameEntityCommandBufferSystem _ecbSystem;
 
@@ -192,6 +194,20 @@ namespace EntitiesExt {
       public bool TryGet<T>(out T result) where T : unmanaged, IComponentData {
          if (HasComponent<T>()) {
             result = Get<T>();
+            return true;
+         }
+
+         result = default;
+         return false;
+      }
+      
+      /// <summary>
+      /// Performs HasComponent then GetBuffer if component is present.
+      /// Returns default otherwise.
+      /// </summary>
+      public bool TryGetBuffer<T>(out DynamicBuffer<T> result) where T : unmanaged, IBufferElementData {
+         if (HasComponent<T>()) {
+            result = GetBuffer<T>();
             return true;
          }
 

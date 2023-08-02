@@ -76,17 +76,48 @@ namespace EntitiesExt {
 
          return dataList;
       }
+      
+            
+      /// <summary>
+      /// Attempts to pack an IBufferElementData to the list (with list allocation) if it exists.
+      /// Otherwise returns null
+      /// </summary>
+      public static List<T> TryPack<T>(this EntityBehaviour entityBehaviour) where T : unmanaged, IBufferElementData {
+         if (!entityBehaviour.TryGetBuffer(out DynamicBuffer<T> buffer)) return null;
+         if (buffer.Length == 0) return null; // Save some space and alloc
+         
+         List<T> dataList = new List<T>();
+         dataList.Pack(entityBehaviour.GetBuffer<T>());
+
+         return dataList;
+      }
 
       /// <summary>
       /// UnPacks IBufferElementData from list to the buffer
       /// </summary>
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static void UnPackTo<T>(this List<T> list, EntityBehaviour entityBehaviour)
+      public static void UnPack<T>(this EntityBehaviour entityBehaviour, List<T> list)
          where T : unmanaged, IBufferElementData {
          DynamicBuffer<T> buffer = entityBehaviour.SetBuffer<T>();
          
          if (list == null || list.Count == 0) return; // Nothing to unpack
          
+         foreach (T data in list) {
+            buffer.Add(data);
+         }
+      }
+
+      /// <summary>
+      /// Attempts to unpack IBufferElementData from list to the buffer.
+      /// </summary>
+      /// <remarks>Does not attach buffer if it does not exists or empty</remarks>
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static void TryUnPack<T>(this EntityBehaviour entityBehaviour, List<T> list)
+         where T : unmanaged, IBufferElementData {
+         if (list == null || list.Count == 0) return; // Nothing to unpack
+
+         DynamicBuffer<T> buffer = entityBehaviour.AddSetBuffer<T>();
+
          foreach (T data in list) {
             buffer.Add(data);
          }
