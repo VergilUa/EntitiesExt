@@ -12,6 +12,10 @@ using Object = UnityEngine.Object;
 // ReSharper disable once CheckNamespace -> Ignore to shorten up
 namespace EntitiesExt {
    public static class EntitiesBridge {
+      public static World World => World.DefaultGameObjectInjectionWorld;
+
+      public static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
+       
       /// <summary>
       /// Generates an entity with the specified component type setup.
       /// EntityManager is automatically taken from the World.DefaultGameObjectInjectionWorld
@@ -178,6 +182,14 @@ namespace EntitiesExt {
 #if UNITY_EDITOR
       private static readonly List<EntityBehaviour> Buffer = new List<EntityBehaviour>();
 
+      /// <summary>
+      /// Obtains entity name from the default world
+      /// </summary>
+      /// <remarks>
+      /// This is an editor only method
+      /// </remarks>
+      public static string GetName(this Entity entity) => EntityManager.GetName(entity);
+      
       /// <summary>
       /// Utility for inserting multiple types in a single call
       /// </summary>
