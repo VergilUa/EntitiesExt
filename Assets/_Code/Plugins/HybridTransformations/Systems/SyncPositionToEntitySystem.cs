@@ -25,14 +25,20 @@ namespace HybridTransformations {
       protected override void OnCreate() {
          base.OnCreate();
 
-         EntityQuery posQuery = GetEntityQuery(ComponentType.ReadOnly<SyncPositionToEntity>(),
-                                               ComponentType.ReadWrite<Position>());
+         EntityManager entityManager = EntityManager;
+         EntityQuery posQuery = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncPositionToEntity, Position>()
+                                                                            .Build(entityManager);
+         
+         EntityQuery posOffsetQuery = new EntityQueryBuilder(WorldUpdateAllocator)
+                                      .WithAll<SyncPositionToEntity, SyncPositionOffset>()
+                                      .WithAllRW<Position>()
+                                      .Build(entityManager);
 
-         EntityQuery posOffsetQuery = GetEntityQuery(ComponentType.ReadOnly<SyncPositionToEntity>(),
-                                                     ComponentType.ReadWrite<Position>(),
-                                                     ComponentType.ReadOnly<SyncPositionOffset>());
-
-         RequireAnyForUpdate(posQuery, posOffsetQuery);
+         NativeArray<EntityQuery> queries = new NativeArray<EntityQuery>(2, Allocator.Temp);
+         queries[0] = posQuery;
+         queries[1] = posOffsetQuery;
+         
+         RequireAnyForUpdate(queries);
 
          _transformContainerSystem = World.GetExistingSystemManaged<TransformContainerSystem>();         
       }

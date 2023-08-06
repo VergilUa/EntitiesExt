@@ -20,8 +20,8 @@ namespace HybridTransformations {
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<SyncUpToTransform>(),
-                                            ComponentType.ReadOnly<UpDirection>());
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncUpToTransform, UpDirection>()
+                                                                         .Build(EntityManager);
          RequireForUpdate(query);
 
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
@@ -31,14 +31,17 @@ namespace HybridTransformations {
          Profiler.BeginSample("SyncUpDirectionToTransformSystem::OnUpdate (Main Thread)");
 
          var tagData = GetComponentLookup<SyncUpToTransform>();
-         ComponentLookup<UpDirection> upArray = GetComponentLookup<UpDirection>();
+         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         var upArray = GetComponentLookup<UpDirection>();
+         
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncUpToTransformJob syncPosJob = new SyncUpToTransformJob
                                            {
                                               Entities = alignedEntities,
                                               TagData = tagData,
-                                              UpArray = upArray
+                                              UpArray = upArray,
+                                              DontSyncTags = dontSyncTags
                                            };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -55,6 +58,10 @@ namespace HybridTransformations {
          [ReadOnly]
          [NativeDisableParallelForRestriction]
          public ComponentLookup<SyncUpToTransform> TagData;
+         
+         [ReadOnly]
+         [NativeDisableParallelForRestriction]
+         public ComponentLookup<DontSyncOneFrame> DontSyncTags;
 
          [ReadOnly]
          [NativeDisableParallelForRestriction]
@@ -62,6 +69,8 @@ namespace HybridTransformations {
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
+            
+            if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
             if (!UpArray.HasComponent(entity)) return;
 

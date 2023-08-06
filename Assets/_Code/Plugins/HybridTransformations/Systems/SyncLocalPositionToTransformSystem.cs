@@ -18,24 +18,28 @@ namespace HybridTransformations {
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<SyncLocalPositionToTransform>(),
-                                            ComponentType.ReadOnly<LocalPosition>());
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
+                             .WithAll<LocalPosition, SyncLocalPositionToTransform>()
+                             .Build(EntityManager);
          
          RequireForUpdate(query);
+         
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
       }
 
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncLocalPositionToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncLocalPositionToTransform>();
-         var localPositionArr = GetComponentLookup<LocalPosition>();
+         var tagData = GetComponentLookup<SyncLocalPositionToTransform>(true);
+         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         var localPositionArr = GetComponentLookup<LocalPosition>(true);
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncLocalPositionJob syncPosJob = new SyncLocalPositionJob
                                            {
                                               Entities = alignedEntities,
                                               TagData = tagData,
+                                              DontSyncTags = dontSyncTags,
                                               LocalPositionArray = localPositionArr
                                            };
 
@@ -53,6 +57,10 @@ namespace HybridTransformations {
          [ReadOnly]
          [NativeDisableParallelForRestriction]
          public ComponentLookup<SyncLocalPositionToTransform> TagData;
+         
+         [ReadOnly]
+         [NativeDisableParallelForRestriction]
+         public ComponentLookup<DontSyncOneFrame> DontSyncTags;
 
          [ReadOnly]
          [NativeDisableParallelForRestriction]
@@ -60,7 +68,10 @@ namespace HybridTransformations {
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
+            
+            if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
+            if (!LocalPositionArray.HasComponent(entity)) return;
 
             LocalPosition data = LocalPositionArray[entity];
             transform.localPosition = data.Value;

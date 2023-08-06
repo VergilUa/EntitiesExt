@@ -10,7 +10,6 @@ namespace HybridTransformations {
    /// Synchronizes local scale data from ECS to transform
    /// </summary>
    [UpdateInGroup(typeof(AfterSimulationGroup))]
-   // ReSharper disable once UnusedType.Global -> Handled by Auto-creation
    public partial class SyncLocalScaleToTransformSystem : SystemBase {
       #region [Fields]
 
@@ -19,8 +18,10 @@ namespace HybridTransformations {
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<SyncLocalScaleToTransform>(),
-                                            ComponentType.ReadOnly<LocalScale>());
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
+                             .WithAll<SyncLocalScaleToTransform, LocalScale>()
+                             .Build(EntityManager);
+         
          RequireForUpdate(query);
          
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();

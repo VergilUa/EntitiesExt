@@ -23,8 +23,9 @@ namespace HybridTransformations {
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<SyncRotationToEntity>(),
-                                            ComponentType.ReadWrite<Rotation>());
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncRotationToEntity>()
+                                                                         .WithAllRW<Rotation>()
+                                                                         .Build(EntityManager);
          RequireForUpdate(query);
 
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();

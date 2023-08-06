@@ -10,7 +10,6 @@ namespace HybridTransformations {
    /// Synchronizes local rotation data from ECS to transform
    /// </summary>
    [UpdateInGroup(typeof(AfterSimulationGroup))]
-   // ReSharper disable once UnusedType.Global -> Handled by Auto-creation
    public partial class SyncLocalRotationToTransformSystem : SystemBase {
       #region [Fields]
 
@@ -19,8 +18,10 @@ namespace HybridTransformations {
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<SyncLocalRotationToTransform>(),
-                                            ComponentType.ReadOnly<LocalRotation>());
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
+                             .WithAll<SyncLocalRotationToTransform, LocalRotation>()
+                             .Build(EntityManager);
+         
          RequireForUpdate(query);
          
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
@@ -67,6 +68,7 @@ namespace HybridTransformations {
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
+            
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
             if (!RotationArray.HasComponent(entity)) return;
