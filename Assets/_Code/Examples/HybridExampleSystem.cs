@@ -5,11 +5,12 @@ namespace Examples {
    /// <summary>
    /// Simple managed system to run basic examples
    /// </summary>
+   [RequireMatchingQueriesForUpdate]
    public partial class HybridExampleSystem : SystemBase {
       protected override void OnUpdate() {
-         Entities.ForEach((in Rigidbody rgb,
-                           in ForceTest forceTestData,
-                           in DynamicBuffer<RotationTest> rotationTestBuffer) => {
+         Entities.ForEach((ref DynamicBuffer<RotationTest> rotationTestBuffer,
+                           in Rigidbody rgb,
+                           in ForceTest forceTestData) => {
                     float rnd = Random.value;
                     Vector3 dir = Vector3.up;
 
@@ -25,7 +26,7 @@ namespace Examples {
                        rgb.AddTorque(rotationTestData.Value * Vector3.up);
                     }
                  })
-                 .WithAll<HybridExample>()
+                 .WithAny<HybridExample, HybridManagedExample>()
                  .WithoutBurst()
                  .Run();
       }
