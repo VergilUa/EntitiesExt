@@ -14,10 +14,18 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      
+      private ComponentLookup<SyncLocalScaleToTransform> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
+      private ComponentLookup<LocalScale> _upArray;
 
       #endregion
 
       protected override void OnCreate() {
+         _tagData = GetComponentLookup<SyncLocalScaleToTransform>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         _upArray = GetComponentLookup<LocalScale>(true);
+         
          EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
                              .WithAll<SyncLocalScaleToTransform, LocalScale>()
                              .Build(EntityManager);
@@ -30,17 +38,18 @@ namespace HybridTransformations {
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncLocalScaleToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncLocalScaleToTransform>(true);
-         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
-         var upArray = GetComponentLookup<LocalScale>(true);
+         _tagData.Update(this);
+         _dontSyncTags.Update(this);
+         _upArray.Update(this);
+         
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncLocalScaleJob syncPosJob = new SyncLocalScaleJob
                                         {
                                            Entities = alignedEntities,
-                                           TagData = tagData,
-                                           DontSyncTags = dontSyncTags,
-                                           LocalScaleArray = upArray
+                                           TagData = _tagData,
+                                           DontSyncTags = _dontSyncTags,
+                                           LocalScaleArray = _upArray
                                         };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -71,9 +80,8 @@ namespace HybridTransformations {
 
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!LocalScaleArray.HasComponent(entity)) return;
+            if (!LocalScaleArray.TryGetComponent(entity, out LocalScale data)) return;
 
-            LocalScale data = LocalScaleArray[entity];
             transform.localScale = data.Value;
          }
       }

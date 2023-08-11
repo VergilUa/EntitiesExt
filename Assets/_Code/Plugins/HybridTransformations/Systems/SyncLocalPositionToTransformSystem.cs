@@ -14,33 +14,41 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      private ComponentLookup<SyncLocalPositionToTransform> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
+      private ComponentLookup<LocalPosition> _localPositions;
 
       #endregion
 
       protected override void OnCreate() {
+         _tagData = GetComponentLookup<SyncLocalPositionToTransform>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         _localPositions = GetComponentLookup<LocalPosition>(true);
+         
+         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
+         
          EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
                              .WithAll<LocalPosition, SyncLocalPositionToTransform>()
                              .Build(EntityManager);
          
          RequireForUpdate(query);
-         
-         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
       }
 
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncLocalPositionToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncLocalPositionToTransform>(true);
-         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
-         var localPositionArr = GetComponentLookup<LocalPosition>(true);
+         _tagData.Update(this);
+         _dontSyncTags.Update(this);
+         _localPositions.Update(this);
+         
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncLocalPositionJob syncPosJob = new SyncLocalPositionJob
                                            {
                                               Entities = alignedEntities,
-                                              TagData = tagData,
-                                              DontSyncTags = dontSyncTags,
-                                              LocalPositionArray = localPositionArr
+                                              TagData = _tagData,
+                                              DontSyncTags = _dontSyncTags,
+                                              LocalPositions = _localPositions
                                            };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -64,16 +72,15 @@ namespace HybridTransformations {
 
          [ReadOnly]
          [NativeDisableParallelForRestriction]
-         public ComponentLookup<LocalPosition> LocalPositionArray;
+         public ComponentLookup<LocalPosition> LocalPositions;
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
             
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!LocalPositionArray.HasComponent(entity)) return;
+            if (!LocalPositions.TryGetComponent(entity, out LocalPosition data)) return;
 
-            LocalPosition data = LocalPositionArray[entity];
             transform.localPosition = data.Value;
          }
       }

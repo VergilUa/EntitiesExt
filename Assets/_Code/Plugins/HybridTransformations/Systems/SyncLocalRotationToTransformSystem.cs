@@ -14,12 +14,20 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      
+      private ComponentLookup<SyncLocalRotationToTransform> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
+      private ComponentLookup<LocalRotation> _rotationArray;
 
       #endregion
 
       protected override void OnCreate() {
+         _tagData = GetComponentLookup<SyncLocalRotationToTransform>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         _rotationArray = GetComponentLookup<LocalRotation>(true);
+         
          EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator)
-                             .WithAll<SyncLocalRotationToTransform, LocalRotation>()
+                             .WithAll<LocalRotation, SyncLocalRotationToTransform>()
                              .Build(EntityManager);
          
          RequireForUpdate(query);
@@ -30,18 +38,18 @@ namespace HybridTransformations {
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncRotationToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncLocalRotationToTransform>(true);
-         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
-         var rotationArray = GetComponentLookup<LocalRotation>(true);
+         _tagData.Update(this);
+         _dontSyncTags.Update(this);
+         _rotationArray.Update(this);
 
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncLocalRotationToTransformJob syncPosJob = new SyncLocalRotationToTransformJob
                                                       {
                                                          Entities = alignedEntities,
-                                                         TagData = tagData,
-                                                         DontSyncTags = dontSyncTags,
-                                                         RotationArray = rotationArray
+                                                         TagData = _tagData,
+                                                         DontSyncTags = _dontSyncTags,
+                                                         RotationArray = _rotationArray
                                                       };
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
          alignedEntities.Dispose(Dependency);
@@ -71,9 +79,8 @@ namespace HybridTransformations {
             
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!RotationArray.HasComponent(entity)) return;
+            if (!RotationArray.TryGetComponent(entity, out LocalRotation data)) return;
 
-            LocalRotation data = RotationArray[entity];
             transform.localRotation = data.Value;
          }
       }

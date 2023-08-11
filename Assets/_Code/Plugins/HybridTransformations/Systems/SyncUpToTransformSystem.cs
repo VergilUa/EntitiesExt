@@ -16,32 +16,41 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      
+      private ComponentLookup<SyncUpToTransform> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
+      private ComponentLookup<UpDirection> _upArray;
 
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncUpToTransform, UpDirection>()
+         _tagData = GetComponentLookup<SyncUpToTransform>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         _upArray = GetComponentLookup<UpDirection>(true);
+         
+         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
+         
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<UpDirection, SyncUpToTransform>()
                                                                          .Build(EntityManager);
          RequireForUpdate(query);
-
-         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
       }
 
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncUpDirectionToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncUpToTransform>();
-         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
-         var upArray = GetComponentLookup<UpDirection>();
+         _tagData.Update(this);
+         _dontSyncTags.Update(this);
+         _upArray.Update(this);
          
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncUpToTransformJob syncPosJob = new SyncUpToTransformJob
                                            {
                                               Entities = alignedEntities,
-                                              TagData = tagData,
-                                              UpArray = upArray,
-                                              DontSyncTags = dontSyncTags
+                                              
+                                              TagData = _tagData,
+                                              UpArray = _upArray,
+                                              DontSyncTags = _dontSyncTags
                                            };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -72,12 +81,9 @@ namespace HybridTransformations {
             
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!UpArray.HasComponent(entity)) return;
+            if (!UpArray.TryGetComponent(entity, out UpDirection data)) return;
 
-            UpDirection data = UpArray[entity];
-
-            float3 forward = new float3(0, 0, 1);
-            transform.rotation = quaternion.LookRotation(forward, data.Value);
+            transform.rotation = quaternion.LookRotation(math.forward(), data.Value);
          }
       }
    }

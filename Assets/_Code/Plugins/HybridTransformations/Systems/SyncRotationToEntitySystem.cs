@@ -19,12 +19,18 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      
+      private ComponentLookup<Rotation> _rotations;
+      private ComponentLookup<SyncRotationToEntity> _tagData;
 
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncRotationToEntity>()
-                                                                         .WithAllRW<Rotation>()
+         _rotations = GetComponentLookup<Rotation>();
+         _tagData = GetComponentLookup<SyncRotationToEntity>(true);
+         
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAllRW<Rotation>()
+                                                                         .WithAll<SyncRotationToEntity>()
                                                                          .Build(EntityManager);
          RequireForUpdate(query);
 
@@ -34,16 +40,16 @@ namespace HybridTransformations {
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncPositionToEntitySystem::OnUpdate (Main Thread)");
 
-         ComponentLookup<Rotation> rotations = GetComponentLookup<Rotation>();
-         ComponentLookup<SyncRotationToEntity> tagData = GetComponentLookup<SyncRotationToEntity>();
+         _rotations.Update(this);
+         _tagData.Update(this);
 
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncRotationToEntityJob syncPosJob = new SyncRotationToEntityJob
                                               {
                                                  Entities = alignedEntities,
-                                                 TagData = tagData,
-                                                 RotationArray = rotations
+                                                 TagData = _tagData,
+                                                 Rotations = _rotations
                                               };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -62,19 +68,16 @@ namespace HybridTransformations {
          public ComponentLookup<SyncRotationToEntity> TagData;
 
          [NativeDisableParallelForRestriction]
-         public ComponentLookup<Rotation> RotationArray;
+         public ComponentLookup<Rotation> Rotations;
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
 
             if (!TagData.HasComponent(entity)) return;
-            if (!RotationArray.HasComponent(entity)) return;
+            if (!Rotations.TryGetComponent(entity, out Rotation data)) return;
 
-            Quaternion pos = transform.rotation;
-
-            Rotation data = RotationArray[entity];
-            data.Value = pos;
-            RotationArray[entity] = data;
+            data.Value = transform.rotation;
+            Rotations[entity] = data;
          }
       }
    }

@@ -15,32 +15,39 @@ namespace HybridTransformations {
       #region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
+      private ComponentLookup<SyncPositionToTransform> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
+      private ComponentLookup<Position> _positions;
 
       #endregion
 
       protected override void OnCreate() {
-         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<SyncPositionToTransform, Position>()
+         _tagData = GetComponentLookup<SyncPositionToTransform>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
+         _positions = GetComponentLookup<Position>(true);
+         
+         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
+         
+         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAll<Position, SyncPositionToTransform>()
                                                                          .Build(EntityManager);
          RequireForUpdate(query);
-
-         _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
       }
 
       protected override void OnUpdate() {
          Profiler.BeginSample("SyncPositionToTransformSystem::OnUpdate (Main Thread)");
 
-         var tagData = GetComponentLookup<SyncPositionToTransform>(true);
-         var dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
-         var positions = GetComponentLookup<Position>(true);
+         _tagData.Update(this);
+         _dontSyncTags.Update(this);
+         _positions.Update(this);
 
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
          SyncPositionToTransformJob syncPosJob = new SyncPositionToTransformJob
                                                  {
                                                     Entities = alignedEntities,
-                                                    TagData = tagData,
-                                                    DontSyncTags = dontSyncTags,
-                                                    PositionArray = positions
+                                                    TagData = _tagData,
+                                                    DontSyncTags = _dontSyncTags,
+                                                    Positions = _positions
                                                  };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
@@ -64,16 +71,16 @@ namespace HybridTransformations {
 
          [ReadOnly]
          [NativeDisableParallelForRestriction]
-         public ComponentLookup<Position> PositionArray;
+         public ComponentLookup<Position> Positions;
 
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
             Entity entity = Entities[index];
+            
             if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!PositionArray.HasComponent(entity)) return;
+            if (!Positions.TryGetComponent(entity, out Position data)) return;
 
-            Position data = PositionArray[entity];
             transform.position = data.Value;
          }
       }
