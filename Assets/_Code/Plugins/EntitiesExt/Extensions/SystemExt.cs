@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace EntitiesExt {
    public static class SystemExt {
@@ -52,9 +54,40 @@ namespace EntitiesExt {
          if (collection.IsCreated) collection.Dispose();
       }
       
+      /// <summary>
+      /// Safely disposes collection by checking if it has been created
+      /// </summary>
+      public static void SafeDispose<TKey, TValue>(this NativeParallelMultiHashMap<TKey, TValue> collection)
+         where TKey : unmanaged, IEquatable<TKey>
+         where TValue : unmanaged {
+         if (collection.IsCreated) collection.Dispose();
+      }
+      
+      /// <summary>
+      /// Safely disposes collection by checking if it has been created
+      /// </summary>
+      public static void SafeDispose<TKey, TValue>(this UnsafeParallelHashMap<TKey, TValue> collection)
+         where TKey : unmanaged, IEquatable<TKey>
+         where TValue : unmanaged {
+         if (collection.IsCreated) collection.Dispose();
+      }
+      
+      /// <summary>
+      /// Safely disposes collection by checking if it has been created
+      /// </summary>
+      public static void SafeDispose<TKey, TValue>(this UnsafeParallelMultiHashMap<TKey, TValue> collection)
+         where TKey : unmanaged, IEquatable<TKey>
+         where TValue : unmanaged {
+         if (collection.IsCreated) collection.Dispose();
+      }
+
       public static void SafeDispose<T>(this NativeQueue<T> collection)
          where T : unmanaged {
          if (collection.IsCreated) collection.Dispose();
+      }
+
+      public static JobHandle CombineWith(this JobHandle handle, JobHandle jobHandle) {
+         return JobHandle.CombineDependencies(handle, jobHandle);
       }
    }
 }
