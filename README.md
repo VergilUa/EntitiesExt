@@ -98,10 +98,10 @@ If you need to stop "Update" use either Entities enableable components feature, 
 
 Extra systems & execution order:
 In order to ensure correct execution and prevent job stalls, make sure to use [UpdateInGroup(typeof(AfterSimulationGroup))] for the managed component systems.
-Alternatively BeforeSimulationGroup can be used. 
-
-Changes done to the entities via EntityBehaviour are applied via BeginFrameEntityCommandBufferSystem.
-Changes in AfterSimulationGroup should either use AfterSimulationEntityCommandBufferSystem or NextFrameEntityCommandBufferSystem
+Alternatively BeforeSimulationGroup can be used.
+ 
+<br>Changes done to the entities via EntityBehaviour are applied via BeginFrameEntityCommandBufferSystem.
+<br>Changes in AfterSimulationGroup should either use AfterSimulationEntityCommandBufferSystem or NextFrameEntityCommandBufferSystem
 
 ## Extended simulation groups:
 - BeginFrameGroup (Changes to Entities from MonoBehaviours are applied here);
@@ -123,13 +123,10 @@ List of data:
 Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformations/Systems & HybridTransformations/Data.
 
 ## Compatibility:
-This repo is compatible with Unity 2022.3 LTS + Entities 1.0.11;
+Master branch is compatible with Unity 2022.3 LTS + Entities 1.0.14;
 
 Currently does not support authoring Entity Graphics or Unity.Physics packages alike out-of-the-box. 
 Manually authoring components and adding according data would work though. 
 
-Can be used with 0.51 and lower if EntityBehaviour type constraints are modified from "unmanaged" to "struct", and API calls to fetch systems are changed from "GetExistingSystemManaged" to "GetExistingSystem" as well as "GetOrCreateSystemManaged" -> "GetOrCreateSystem".
-
 Any issues, suggestions or feature requests can be left either on github, or on Unity forum by link:
-
 https://forum.unity.com/threads/entitiesext-runtime-authoring-for-entities-and-tooling.1346108/
