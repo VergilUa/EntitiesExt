@@ -1,0 +1,22 @@
+{
+  "name": "com.nightphoxen.entitiesext",
+  "description": "Entities Extensions and runtime authoring",
+  "version": "1.0.7",
+  "unity": "2022.3",
+  "unityRelease": "5f1",
+  "displayName": "EntitiesExt",
+  "dependencies": {
+    "com.unity.entities": "1.0.14"
+  },
+  "keywords": [
+    "entities",
+    "dots"
+  ],
+  "documentationUrl": "https://github.com/VergilUa/EntitiesExt#readme",
+  "repository": {
+    "url": "https://github.com/VergilUa/EntitiesExt.git",
+    "type": "git",
+    "revision": "865f47f168653f21c2312497b3796e29963dfe76"
+  },
+  "type": "library"
+}
