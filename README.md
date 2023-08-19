@@ -109,7 +109,7 @@ Alternatively BeforeSimulationGroup can be used.
 - SimulationGroup (Default simulation group, jobified logic should be placed here);
 - AfterSimulationGroup (Processed changes from SimulationGroup can be applied to MonoBehaviours here);
 
-## Transform Synchronization
+## Transform Synchronization [![openupm](https://img.shields.io/npm/v/com.nightphoxen.hybridtransformations?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.nightphoxen.hybridtransformations/)
 Required data from UnityEngine.Transform can be read / written to by adding appropriate components to the Entity, either via IEntitySupplier implementation, or by other means. Modifiers of where to sync is applied by components as well.
 
 Make sure to add EntityTransform to your EntityBehaviour setup, rest is handled automatically.
