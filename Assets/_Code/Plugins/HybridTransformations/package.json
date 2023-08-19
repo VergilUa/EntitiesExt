@@ -1,12 +1,13 @@
 {
-  "name": "com.nightphoxen.entitiesext",
-  "description": "Entities Extensions and runtime authoring. Allows authoring of Entities related data directly from the MonoBehaviours, as well as provides intermediate link between MonoBehaviours & Entities.",
+  "name": "com.nightphoxen.hybridtransformations",
+  "description": "Set of systems & data that allows bidirectional synchronization of UnityEngine.Transform data between MonoBehaviour <-> Entities sides.",
   "version": "1.0.10",
   "unity": "2022.3",
   "unityRelease": "5f1",
-  "displayName": "EntitiesExt",
+  "displayName": "Hybrid Transformations",
   "dependencies": {
     "com.unity.entities": "1.0.14"
+	"com.nightphoxen.entitiesext" : "1.0.10"
   },
   "keywords": [
     "entities",
