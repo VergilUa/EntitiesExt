@@ -1,7 +1,7 @@
 {
   "name": "com.nightphoxen.entitiesext",
-  "description": "Entities Extensions and runtime authoring",
-  "version": "1.0.8",
+  "description": "Entities Extensions and runtime authoring. Allows authoring of Entities related data directly from the MonoBehaviours, as well as provides intermediate link between MonoBehaviours & Entities.",
+  "version": "1.0.9",
   "unity": "2022.3",
   "unityRelease": "5f1",
   "displayName": "EntitiesExt",

@@ -1,4 +1,4 @@
-# EntitiesExt
+# EntitiesExt [![openupm](https://img.shields.io/npm/v/com.nightphoxen.entitiesext?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.nightphoxen.entitiesext/)
 ### Runtime authoring solution for Entities & misc tooling
 
 ### Includes:
