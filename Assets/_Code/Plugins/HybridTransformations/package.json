@@ -6,7 +6,7 @@
   "unityRelease": "5f1",
   "displayName": "Hybrid Transformations",
   "dependencies": {
-    "com.unity.entities": "1.0.14"
+    "com.unity.entities": "1.0.14",
 	"com.nightphoxen.entitiesext" : "1.0.10"
   },
   "keywords": [
