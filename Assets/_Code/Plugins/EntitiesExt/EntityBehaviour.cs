@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -75,10 +77,8 @@ namespace EntitiesExt {
 #if DEBUG
          GameObject go = gameObject;
          if (!go.activeInHierarchy) {
-            Debug.LogError("Initializing entity on disabled gameObject will cause desync in MonoBehaviour <-> Entities state."
-                           + $" This is most-likely a bug. Investigate a callstack and prevent this. Caused by {gameObject}",
-                           go);
-            Debug.Break();
+            LogError("Initializing entity on disabled gameObject will cause desync in MonoBehaviour <-> Entities state."
+                     + " This is most-likely a bug. Investigate a callstack and prevent this.", go);
             return;
          }
 #endif
@@ -93,22 +93,22 @@ namespace EntitiesExt {
          _isInitialized = true;
 
          _world = EntitiesBridge.TryGetWorldAt(_insertToWorld);
+         
 #if UNITY_EDITOR
          if (_world == null) {
-            Debug.LogError($"{nameof(EntityBehaviour)}:: Unable to get World at index {_insertToWorld} ");
+            LogError($"Unable to get World at index {_insertToWorld} ");
             return;
          }
 #endif
-         
          EntityManager em = _world.EntityManager;
          _entityManager = em;
          _ecbSystem = _world.GetExistingSystemManaged<BeginFrameEntityCommandBufferSystem>();
          
 #if UNITY_EDITOR
          if (_ecbSystem == null) {
-            Debug.LogError($"{nameof(EntityBehaviour)}:: Unable to get {nameof(BeginFrameEntityCommandBufferSystem)} "
-                           + $"from World at index {_insertToWorld} ({World.All[_insertToWorld].Name}). "
-                           + "Make sure it is created by the bootstrap");
+            LogError($"Unable to get {nameof(BeginFrameEntityCommandBufferSystem)} "
+                     + $"from World at index {_insertToWorld} ({World.All[_insertToWorld].Name}). "
+                     + "Make sure it is created by the bootstrap");
             return;
          }
 #endif
@@ -126,7 +126,13 @@ namespace EntitiesExt {
          Profiler.EndSample();
 
 #if UNITY_EDITOR
-         SetName(name);
+         string nameStr = name;
+         
+         if (FitsInFixedString64(nameStr)) {
+            SetName(nameStr);
+         } else {
+            LogError("Unable to SetName for the entity - name is too long. Consider using shorter names", this);
+         }
 #endif
          Profiler.EndSample();
       }
@@ -180,8 +186,8 @@ namespace EntitiesExt {
             return !_isInitialized ? default : _entityManager.GetComponentData<T>(Entity);
          } catch (ArgumentException) {
 #if UNITY_EDITOR
-            Debug.LogError($"Unable to get {typeof(T).Name} from {name}. Entity: {EntityManager.GetName(Entity)}",
-                           gameObject);
+            LogError($"Unable to get {typeof(T).Name} from {name}. Entity: {EntityManager.GetName(Entity)}",
+                     gameObject);
 #endif
             throw;
          }
@@ -550,14 +556,38 @@ namespace EntitiesExt {
          supplier.SetupEntity(Entity, EntityManager, Buffer);
       }
 
+      #region [Utility]
+      
       [Conditional("DEBUG")]
       private void AssertEntityNotNull() {
-         if (Entity == default) {
-            Debug.LogError("Entity == default. "
-                           + $"Ensure EntityBehaviour.Initialize has been called before accessing ({gameObject})",
-                           this);
-         }
+         if (Entity != default) return;
+         
+         LogError("Entity == default. Ensure EntityBehaviour.Initialize has been called before accessing", this);
       }
+
+      /// <summary>
+      /// Determines if string fits into <see cref="FixedString64Bytes"/>
+      /// </summary>
+      private static bool FitsInFixedString64(string input)
+      {
+         if (input == null) {
+            return false;
+         }
+         
+         int byteCount = Encoding.UTF8.GetByteCount(input);
+         return byteCount <= FixedString64Bytes.UTF8MaxLengthInBytes - 1; // Account for null terminator
+      }
+
+      #endregion
+
+      #region [Logging]
+
+      private void LogError(string message, Object context = null) {
+         var nameStr = this != null ? name : "null";
+         Debug.LogError($"[{nameof(EntityBehaviour)}] ({nameStr}):: {message}", context);
+      }
+
+      #endregion
       
 
 #if UNITY_EDITOR

@@ -32,7 +32,7 @@ namespace HybridTransformations {
          var ecb = SystemAPI.GetSingleton<NextFrameEntityCommandBufferSystem.Singleton>()
                             .CreateCommandBuffer(state.WorldUnmanaged);
          
-         ecb.RemoveComponent<DontSyncOneFrame>(_dontSyncOneFrame, EntityQueryCaptureMode.AtRecord);
+         ecb.RemoveComponent<DontSyncOneFrame>(_dontSyncOneFrame, EntityQueryCaptureMode.AtPlayback);
       }
    }
 }

@@ -123,7 +123,9 @@ List of data:
 Other transform manipulation logic can be added by writing appropriate systems, see HybridTransformations/Systems & HybridTransformations/Data.
 
 ## Compatibility:
-Master branch is compatible with Unity 2022.3 LTS + Entities 1.0.14;
+Minimal compatible version is 2022.3 LTS.
+Tested versions are 2022.3 LTS, master branch matches 6000.2.
+Other versions untested, but with updated / downgraded version of Entities package should work as well with minimum changes.
 
 Currently does not support authoring Entity Graphics or Unity.Physics packages alike out-of-the-box. 
 Manually authoring components and adding according data would work though. 
