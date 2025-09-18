@@ -124,11 +124,13 @@ Other transform manipulation logic can be added by writing appropriate systems, 
 
 ## Compatibility:
 Minimal compatible version is 2022.3 LTS.
+
 Tested versions are 2022.3 LTS, master branch matches 6000.2.
+
 Other versions untested, but with updated / downgraded version of Entities package should work as well with minimum changes.
 
-Currently does not support authoring Entity Graphics or Unity.Physics packages alike out-of-the-box. 
-Manually authoring components and adding according data would work though. 
+Currently does not support authoring for Entity Graphics or Unity.Physics packages alike out-of-the-box. 
+Use manual authoring components in these cases.
 
 Any issues, suggestions or feature requests can be left either on github, or on Unity forum by link:
 https://forum.unity.com/threads/entitiesext-runtime-authoring-for-entities-and-tooling.1346108/
