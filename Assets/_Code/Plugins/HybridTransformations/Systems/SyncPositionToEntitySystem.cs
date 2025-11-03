@@ -15,30 +15,33 @@ namespace HybridTransformations {
    [UpdateInGroup(typeof(BeforeSimulationGroup))]
    [UpdateAfter(typeof(PhysSimGroup))]
    public partial class SyncPositionToEntitySystem : SystemBase {
-      #region [Fields]
+#region [Fields]
 
       private TransformContainerSystem _transformContainerSystem;
-      
+
       private ComponentLookup<Position> _positions;
       private ComponentLookup<SyncPositionToEntity> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
       private ComponentLookup<SyncPositionOffset> _syncPositionOffsets;
 
-      #endregion
+#endregion
 
       protected override void OnCreate() {
          base.OnCreate();
 
          _positions = GetComponentLookup<Position>();
          _tagData = GetComponentLookup<SyncPositionToEntity>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
          _syncPositionOffsets = GetComponentLookup<SyncPositionOffset>(true);
-         
+
          _transformContainerSystem = World.GetExistingSystemManaged<TransformContainerSystem>();
-         
-         EntityManager entityManager = EntityManager;
-         EntityQuery posQuery = new EntityQueryBuilder(WorldUpdateAllocator).WithAllRW<Position>()
-                                                                            .WithAll<SyncPositionToEntity>()
-                                                                            .Build(entityManager);
-         
+
+         var entityManager = EntityManager;
+         var posQuery = new EntityQueryBuilder(WorldUpdateAllocator)
+                       .WithAllRW<Position>()
+                       .WithAll<SyncPositionToEntity>()
+                       .Build(entityManager);
+
          RequireForUpdate(posQuery);
       }
 
@@ -47,25 +50,27 @@ namespace HybridTransformations {
 
          _positions.Update(this);
          _tagData.Update(this);
+         _dontSyncTags.Update(this);
          _syncPositionOffsets.Update(this);
-         
+
          var alignedEntities = _transformContainerSystem.AlignedEntities;
-         
-         SyncPositionToEntityJob syncPosJob = new SyncPositionToEntityJob
-                                              {
-                                                 Entities = alignedEntities,
-                                                 TagData = _tagData,
-                                                 Positions = _positions,
-                                                 OffsetArray = _syncPositionOffsets
-                                              };
+
+         var syncPosJob = new SyncPositionToEntityJob
+                          {
+                             Entities = alignedEntities,
+                             TagData = _tagData,
+                             DontSyncTags = _dontSyncTags,
+                             Positions = _positions,
+                             OffsetArray = _syncPositionOffsets
+                          };
 
          var trmArray = _transformContainerSystem.RefArray;
-         
+
          Dependency = syncPosJob.Schedule(trmArray, Dependency);
          alignedEntities.Dispose(Dependency);
          Profiler.EndSample();
       }
-      
+
       [BurstCompile]
       private struct SyncPositionToEntityJob : IJobParallelForTransform {
          [ReadOnly]
@@ -77,23 +82,28 @@ namespace HybridTransformations {
          
          [ReadOnly]
          [NativeDisableParallelForRestriction]
+         public ComponentLookup<DontSyncOneFrame> DontSyncTags;
+
+         [ReadOnly]
+         [NativeDisableParallelForRestriction]
          public ComponentLookup<SyncPositionOffset> OffsetArray;
 
          [NativeDisableParallelForRestriction]
          public ComponentLookup<Position> Positions;
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
-            Entity entity = Entities[index];
+            var entity = Entities[index];
 
+            if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!Positions.TryGetComponent(entity, out Position data)) return;
+            if (!Positions.TryGetComponent(entity, out var data)) return;
 
             data.Value = transform.position;
 
-            if (OffsetArray.TryGetComponent(entity, out SyncPositionOffset offset)) {
+            if (OffsetArray.TryGetComponent(entity, out var offset)) {
                data.Value += offset.Value;
             }
-            
+
             Positions[entity] = data;
          }
       }

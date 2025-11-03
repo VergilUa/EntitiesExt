@@ -21,16 +21,18 @@ namespace HybridTransformations {
       
       private ComponentLookup<Rotation> _rotations;
       private ComponentLookup<SyncRotationToEntity> _tagData;
+      private ComponentLookup<DontSyncOneFrame> _dontSyncTags;
 
       #endregion
 
       protected override void OnCreate() {
          _rotations = GetComponentLookup<Rotation>();
          _tagData = GetComponentLookup<SyncRotationToEntity>(true);
+         _dontSyncTags = GetComponentLookup<DontSyncOneFrame>(true);
          
-         EntityQuery query = new EntityQueryBuilder(WorldUpdateAllocator).WithAllRW<Rotation>()
-                                                                         .WithAll<SyncRotationToEntity>()
-                                                                         .Build(EntityManager);
+         var query = new EntityQueryBuilder(WorldUpdateAllocator).WithAllRW<Rotation>()
+                                                                 .WithAll<SyncRotationToEntity>()
+                                                                 .Build(EntityManager);
          RequireForUpdate(query);
 
          _transformContainerSystem = World.GetOrCreateSystemManaged<TransformContainerSystem>();
@@ -41,15 +43,17 @@ namespace HybridTransformations {
 
          _rotations.Update(this);
          _tagData.Update(this);
+         _dontSyncTags.Update(this);
 
          var alignedEntities = _transformContainerSystem.AlignedEntities;
 
-         SyncRotationToEntityJob syncPosJob = new SyncRotationToEntityJob
-                                              {
-                                                 Entities = alignedEntities,
-                                                 TagData = _tagData,
-                                                 Rotations = _rotations
-                                              };
+         var syncPosJob = new SyncRotationToEntityJob
+                          {
+                             Entities = alignedEntities,
+                             TagData = _tagData,
+                             DontSyncTags = _dontSyncTags,
+                             Rotations = _rotations
+                          };
 
          Dependency = syncPosJob.Schedule(_transformContainerSystem.RefArray, Dependency);
          alignedEntities.Dispose(Dependency);
@@ -64,16 +68,21 @@ namespace HybridTransformations {
 
          [ReadOnly]
          [NativeDisableParallelForRestriction]
+         public ComponentLookup<DontSyncOneFrame> DontSyncTags;
+         
+         [ReadOnly]
+         [NativeDisableParallelForRestriction]
          public ComponentLookup<SyncRotationToEntity> TagData;
 
          [NativeDisableParallelForRestriction]
          public ComponentLookup<Rotation> Rotations;
 
          public void Execute(int index, [ReadOnly] TransformAccess transform) {
-            Entity entity = Entities[index];
+            var entity = Entities[index];
 
+            if (DontSyncTags.HasComponent(entity)) return;
             if (!TagData.HasComponent(entity)) return;
-            if (!Rotations.TryGetComponent(entity, out Rotation data)) return;
+            if (!Rotations.TryGetComponent(entity, out var data)) return;
 
             data.Value = transform.rotation;
             Rotations[entity] = data;
