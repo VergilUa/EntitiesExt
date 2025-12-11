@@ -630,8 +630,8 @@ namespace EntitiesExt {
       }
 
       private void InsertRootSuppliers() {
-         IEntitySupplier[] suppliers = GetComponents<IEntitySupplier>();
-         foreach (IEntitySupplier supplier in suppliers) {
+         var suppliers = GetComponents<IEntitySupplier>();
+         foreach (var supplier in suppliers) {
             supplier.GatherEntityTypes(TypeBuffer);
             
             _suppliers.Add(supplier as MonoBehaviour);
@@ -639,8 +639,8 @@ namespace EntitiesExt {
       }
 
       private void InsertRootManagedSuppliers() {
-         IEntityManagedSupplier[] suppliers = GetComponents<IEntityManagedSupplier>();
-         foreach (IEntityManagedSupplier supplier in suppliers) {
+         var suppliers = GetComponents<IEntityManagedSupplier>();
+         foreach (var supplier in suppliers) {
             supplier.GatherEntityTypes(TypeBuffer);
             
             // ReSharper disable once SuspiciousTypeConversion.Global -> Ignore, Unity returns only valid ones
@@ -652,11 +652,13 @@ namespace EntitiesExt {
          // Walk through children of transform, find ones that do not have EntityContainer,
          // and them as suppliers as well
          foreach (Transform trm in parent) {
-            GameObject childGO = trm.gameObject;
-            if (childGO.TryGetComponent(out EntityBehaviour _)) continue;
+            var childGO = trm.gameObject;
+            if (childGO.TryGetComponent(out EntityBehaviour _)) {
+               continue;
+            }
 
-            IEntitySupplier[] suppliers = trm.GetComponents<IEntitySupplier>();
-            foreach (IEntitySupplier supplier in suppliers) {
+            var suppliers = trm.GetComponents<IEntitySupplier>();
+            foreach (var supplier in suppliers) {
                supplier.GatherEntityTypes(TypeBuffer);
             
                _suppliers.Add(supplier as MonoBehaviour);
@@ -670,18 +672,20 @@ namespace EntitiesExt {
          // Walk through children of transform, find ones that do not have EntityContainer,
          // and them as suppliers as well
          foreach (Transform trm in parent) {
-            GameObject childGO = trm.gameObject;
-            if (childGO.TryGetComponent(out EntityBehaviour _)) continue;
+            var childGO = trm.gameObject;
+            if (childGO.TryGetComponent(out EntityBehaviour _)) {
+               continue;
+            }
 
-            IEntityManagedSupplier[] suppliers = trm.GetComponents<IEntityManagedSupplier>();
-            foreach (IEntityManagedSupplier supplier in suppliers) {
+            var suppliers = trm.GetComponents<IEntityManagedSupplier>();
+            foreach (var supplier in suppliers) {
                supplier.GatherEntityTypes(TypeBuffer);
                
                // ReSharper disable once SuspiciousTypeConversion.Global -> Ignore, Unity returns only valid ones
                _managedSuppliers.Add(supplier as MonoBehaviour);
             }
             
-            ProcessSuppliersRecursive(trm);
+            ProcessManagedSuppliersRecursive(trm);
          }
       }
 #endif
