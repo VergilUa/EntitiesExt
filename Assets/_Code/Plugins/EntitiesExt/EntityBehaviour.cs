@@ -509,6 +509,14 @@ namespace EntitiesExt {
       }
 
       /// <summary>
+      /// Sets <see cref="IEnableableComponent"/> state for
+      /// the specified component via <see cref="EntityCommandBuffer"/>
+      /// </summary>
+      public void SetEnabled<T>(bool state) where T : unmanaged, IEnableableComponent {
+         Buffer.SetComponentEnabled<T>(Entity, state);
+      }
+
+      /// <summary>
       /// Runs a <see cref="IEntitySupplier.SetupEntity"/> over all suppliers added to this EntityBehaviour and writes
       /// data resolved by those into EntityCommandBuffer to the specified entity
       /// </summary>
